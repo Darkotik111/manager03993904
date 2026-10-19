@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Портал менеджера | Склад</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #F8F9FA;
+    --surface: #FFFFFF;
+    --text: #212529;
+    --text-muted: #6C757D;
+    --border: #DEE2E6;
+    --primary: #0D6EFD;
+    --primary-hover: #0B5ED7;
+    --primary-light: #E7F1FF;
+    --success: #198754;
+    --success-light: #D1E7DD;
+    --danger: #DC3545;
+    --danger-light: #F8D7DA;
+    --warning: #FFC107;
+    
+    --font: 'Inter', -apple-system, sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { 
+    margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); 
+    height: 100vh; display: flex; overflow: hidden;
+  }
+
+  /* --- АВТОРИЗАЦИЯ --- */
+  #authScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-box { background: var(--surface); border: 1px solid var(--border); padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow); }
+  .auth-box h2 { font-size: 24px; margin-top: 0; margin-bottom: 24px; font-weight: 600; }
+  .auth-box input { width: 100%; padding: 12px 16px; margin-bottom: 16px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: var(--font); font-size: 15px; }
+  .auth-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+  .auth-box button { width: 100%; padding: 12px; margin-bottom: 12px; font-size: 16px; border-radius: 8px; }
+  .auth-error { color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none; }
+
+  /* --- КНОПКИ --- */
+  button { 
+    background: var(--surface); color: var(--text); border: 1px solid var(--border); 
+    padding: 10px 16px; border-radius: 8px; font-size: 14px; font-family: var(--font); 
+    cursor: pointer; transition: 0.2s; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  button:hover { background: #F1F3F5; }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  button.primary:hover { background: var(--primary-hover); }
+  button.danger { color: var(--danger); border-color: #F5C2C7; background: transparent; }
+  button.danger:hover { background: var(--danger-light); }
+  button.sm { padding: 6px 12px; font-size: 13px; }
+  button.icon-btn { padding: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; line-height: 1; }
+
+  /* --- LAYOUT --- */
+  .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .sidebar-header { padding: 24px; font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .sidebar-header span { font-size: 13px; color: var(--text-muted); font-weight: 400; }
+  
+  .sidebar-nav { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto;}
+  .nav-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary); }
+  .nav-icon { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;}
+
+  .main-content { flex: 1; overflow-y: auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;}
+  .page-title { font-size: 28px; font-weight: 700; margin: 0; }
+  .page-subtitle { color: var(--text-muted); margin-top: 8px; font-size: 15px; }
+
+  /* --- КАРТИНКА В САЙДБАРЕ --- */
+  .sidebar-image-container {
+    padding: 16px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1; /* Растягивает контейнер, прижимая картинку к низу */
+  }
+  .sidebar-image-container img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 12px;
+    object-fit: contain;
+    /* Мягкая тень для картинки */
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+  }
+
+  /* --- ОБЩИЕ ЭЛЕМЕНТЫ --- */
+  .search-input { 
+    width: 100%; padding: 14px 20px; border-radius: 10px; border: 1px solid var(--border); 
+    font-size: 16px; font-family: var(--font); background: var(--surface); margin-bottom: 24px;
+  }
+  .search-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+  
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+
+  /* --- FAQ --- */
+  .faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; gap: 12px;}
+  .faq-item:last-child { border-bottom: none; }
+  .faq-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;}
+  .faq-q { font-weight: 600; font-size: 16px; }
+  .faq-a { color: var(--text-muted); font-size: 15px; line-height: 1.6; background: var(--bg); padding: 12px; border-radius: 8px; margin-top: 8px;}
+  
+  .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; }
+  .status-badge.has-answer { background: var(--success-light); color: var(--success); }
+  .status-badge.no-answer { background: var(--warning); color: #000; }
+
+  /* --- МАТЕРИАЛЫ (СРАВНЕНИЕ) --- */
+  .comparison-block { margin-bottom: 32px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: var(--surface); position: relative;}
+  .comparison-remove { position: absolute; top: 12px; right: 12px; }
+  
+  .materials-scale-container { 
+    position: relative; margin: 40px 0 30px 0; padding-top: 20px; 
+    border-bottom: 2px solid var(--border); height: 100px;
+  }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); position: absolute; bottom: -24px; width: 100%; }
+  
+  .material-marker {
+    position: absolute; display: flex; flex-direction: column; align-items: center;
+    transform: translateX(-50%); bottom: 0; width: 120px;
+  }
+  .material-dot {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--primary);
+    border: 3px solid var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: 0.2s; z-index: 2;
+  }
+  .material-line { height: 30px; width: 2px; background: var(--border); }
+  .material-label { 
+    font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; margin-bottom: 4px;
+    background: var(--surface); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+
+  .material-card { display: flex; flex-direction: column; gap: 16px; }
+  .material-title { font-weight: 600; font-size: 16px; }
+  .material-pros-cons { display: flex; gap: 16px; font-size: 14px; margin-top: 8px; }
+  .pros { color: var(--success); }
+  .cons { color: var(--danger); }
+
+  /* --- СООТВЕТСТВИЯ --- */
+  .match-table { width: 100%; border-collapse: collapse; }
+  .match-table th, .match-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top;}
+  .match-table th { font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
+  
+  .match-inputs { display: flex; flex-direction: column; gap: 4px; }
+  .match-inputs input { padding: 4px 8px; border: 1px solid transparent; background: transparent; border-radius: 4px; font-family: var(--font); font-size: 14px; width: 100%; }
+  .match-inputs input:hover, .match-inputs input:focus { border-color: var(--border); background: var(--bg); outline: none; }
+
+  /* --- КАЛЬКУЛЯТОР --- */
+  .calc-container { display: flex; gap: 32px; flex-wrap: wrap; }
+  .calc-form { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 16px; }
+  .calc-list { flex: 1; min-width: 300px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+  .form-group input, .form-group select { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 15px; font-family: var(--font); }
+  .calc-result { background: var(--primary-light); padding: 20px; border-radius: 8px; margin-top: 16px; }
+  .calc-result h4 { margin: 0 0 8px 0; color: var(--primary); }
+  .calc-result .number { font-size: 32px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+
+  /* --- ПАЛИТРЫ --- */
+  .palette-card { text-align: center; cursor: pointer; transition: 0.2s; position: relative;}
+  .palette-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .palette-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--bg); }
+  .palette-name { font-weight: 600; font-size: 16px; }
+  
+  .palette-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
+  .palette-actions button { background: rgba(255,255,255,0.9); box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 28px; height: 28px; font-size: 14px; border-radius: 50%;}
+
+  /* --- МОДАЛКИ --- */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;}
+  .modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+  
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: 0.3s; z-index: 2000; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    .sidebar-nav { flex-direction: row; overflow-x: auto; padding: 12px; }
+    .nav-item { white-space: nowrap; }
+    .main-content { padding: 20px; }
+    .grid-2, .grid-4 { grid-template-columns: 1fr; }
+    /* На телефоне картинку прячем, чтобы не занимала экран */
+    .sidebar-image-container { display: none; } 
+  }
+</style>
+</head>
+<body>
+
+<!-- ЭКРАН ВХОДА -->
+<div id="authScreen">
+  <div class="auth-box">
+    <h2>Портал менеджера</h2>
+    <div class="auth-error" id="authError"></div>
+    <input type="email" id="authEmail" placeholder="Рабочий Email">
+    <input type="password" id="authPass" placeholder="Пароль">
+    <button class="primary" onclick="login()">Войти</button>
+  </div>
+</div>
+
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
+<div id="appScreen" style="display:none; width:100%; height:100%;">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      С заботой, от склада ❤️
+      <span>Портал менеджера</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="switchTab('faq', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+        Вопросы (FAQ)
+      </div>
+      <div class="nav-item" onclick="switchTab('materials', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+        Материалы
+      </div>
+      <div class="nav-item" onclick="switchTab('matches', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        Соответствия
+      </div>
+      <div class="nav-item" onclick="switchTab('calculator', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 8h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
+        Калькулятор
+      </div>
+      <div class="nav-item" onclick="switchTab('palettes', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        Палитры
+      </div>
+    </div>
+    
+    <!-- МЕСТО ДЛЯ КАРТИНКИ С КОТИКОМ -->
+    <div class="sidebar-image-container">
+      <img src="meow.jpg" alt="Милый котик" onerror="this.style.display='none'">
+    </div>
+
+    <div style="padding: 16px; border-top: 1px solid var(--border);">
+      <button class="danger" style="width:100%" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- РАЗДЕЛ 1: FAQ -->
+    <div id="tab-faq" class="tab-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Частые вопросы</h1>
+          <div class="page-subtitle">База знаний для менеджеров</div>
+        </div>
+        <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
+      </div>
+      
+      <input type="text" class="search-input" id="faqSearch" placeholder="Начните вводить вопрос, чтобы найти ответ..." oninput="renderFaq()">
+      
+      <div class="card" id="faqList"></div>
+    </div>
+
+    <!-- РАЗДЕЛ 2: МАТЕРИАЛЫ -->
+    <div id="tab-materials" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Материалы и альтернативы</h1>
+          <div class="page-subtitle">Визуальное сравнение характеристик и стоимости</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="primary" onclick="addComparisonGroup()">+ Создать сопоставление</button>
+          <button class="primary" onclick="openMaterialModal()">+ Добавить материал</button>
+        </div>
+      </div>
+
+      <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
+      
+      <div id="comparisonsContainer"></div>
+
+      <h3 style="margin-top:40px;">Все материалы</h3>
+      <div class="grid grid-2" id="materialsList"></div>
+    </div>
+
+    <!-- РАЗДЕЛ 3: СООТВЕТСТВИЯ -->
+    <div id="tab-matches" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Соответствия</h1>
+          <div class="page-subtitle">Соответствия цветов между палитрами</div>
+        </div>
+        <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
+      </div>
+      
+      <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию цвета..." oninput="renderMatches()">
+
+      <div class="card">
+        <table class="match-table">
+          <thead>
+            <tr>
+              <th>Этот цвет</th>
+              <th>Соответствует этому</th>
+              <th style="width:50px;"></th>
+            </tr>
+          </thead>
+          <tbody id="matchTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- РАЗДЕЛ 4: КАЛЬКУЛЯТОР -->
+    <div id="tab-calculator" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Расчёт материалов</h1>
+          <div class="page-subtitle">Умный расчет с учетом техники и слоев</div>
+        </div>
+        <button class="primary" onclick="openCalcModal()">+ Добавить расход</button>
+      </div>
+      
+      <div class="calc-container">
+        <div class="card calc-form">
+          <h3 style="margin-top:0;">Калькулятор</h3>
+          
+          <div class="form-group">
+            <label>Выберите материал из базы</label>
+            <select id="calcMaterial" onchange="updateCalc()"></select>
+          </div>
+          
+          <div class="form-group">
+            <label>Площадь покрытия (кв. м)</label>
+            <input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()">
+          </div>
+
+          <div class="form-group">
+            <label>Техника нанесения (название)</label>
+            <input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()">
+          </div>
+
+          <div class="form-group">
+            <label>Коэффициент расхода техники</label>
+            <input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()">
+            <div style="font-size:12px; color:var(--text-muted);">Стандарт = 1.0. Краскопульт = 1.15. Кельма = 0.9</div>
+          </div>
+
+          <div class="form-group">
+            <label>Количество слоев (от 1 до 7)</label>
+            <select id="calcLayers" onchange="updateCalc()">
+              <option value="1">1 слой</option>
+              <option value="2" selected>2 слоя</option>
+              <option value="3">3 слоя</option>
+              <option value="4">4 слоя</option>
+              <option value="5">5 слоев</option>
+              <option value="6">6 слоев</option>
+              <option value="7">7 слоев</option>
+            </select>
+          </div>
+
+          <div class="calc-result" id="calcResult" style="display:none;">
+            <h4>Необходимо закупить:</h4>
+            <div class="number" id="calcTotalLitres">0</div>
+            <div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <div class="card calc-list">
+          <h3 style="margin-top:0;">База расходов</h3>
+          <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- РАЗДЕЛ 5: ПАЛИТРЫ -->
+    <div id="tab-palettes" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Палитры на складе</h1>
+          <div class="page-subtitle">Управление палитрами производителей</div>
+        </div>
+        <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
+      </div>
+
+      <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
+      
+      <div class="grid grid-4" id="palettesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКИ -->
+<div class="modal-overlay" id="faqModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('faqModal')">×</button>
+    <h3>Задать новый вопрос</h3>
+    <div class="form-group">
+      <label>Вопрос</label>
+      <input type="text" id="faqNewQ" placeholder="Введите вопрос...">
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Ответ (оставьте пустым, если его еще нет)</label>
+      <textarea id="faqNewA" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Введите ответ..."></textarea>
+    </div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaq()">Сохранить</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="materialModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('materialModal')">×</button>
+    <h3>Добавить материал</h3>
+    <div class="form-group">
+      <label>Название материала</label>
+      <input type="text" id="matNewName" placeholder="Например: Краска Интерьерная">
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Ценовая категория (1 — доступный, 5 — премиум)</label>
+      <input type="range" id="matNewPrice" min="1" max="5" value="3" oninput="document.getElementById('matPriceVal').textContent = this.value">
+      <div style="text-align:right; font-weight:bold;" id="matPriceVal">3</div>
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Плюсы (через запятую)</label>
+      <input type="text" id="matNewPros" placeholder="Быстро сохнет, без запаха">
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Минусы (через запятую)</label>
+      <input type="text" id="matNewCons" placeholder="Требует грунтовки">
+    </div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMaterial()">Сохранить материал</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="matchModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('matchModal')">×</button>
+    <h3>Добавить соответствие</h3>
+    <div class="form-group">
+      <label>Этот цвет (NCS / RAL / Другое)</label>
+      <input type="text" id="matchCode" placeholder="Например: NCS S 1500-N">
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Соответствует этому (МКА / Замша / Другое)</label>
+      <input type="text" id="matchColorName" placeholder="Например: Бежевый МКА">
+    </div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMatch()">Сохранить связь</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="calcModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('calcModal')">×</button>
+    <h3>Добавить норму расхода</h3>
+    
+    <div class="form-group">
+      <label>Название материала *</label>
+      <input type="text" id="calcNewName" placeholder="Например: Краска Интерьерная">
+    </div>
+    
+    <div style="background:var(--bg); padding:16px; border-radius:8px; margin-top:16px;">
+      <p style="margin-top:0; font-size:13px; font-weight:600; color:var(--text-muted);">Расчет по образцу</p>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label>Ширина (см)</label>
+          <input type="number" id="calcSampleW" placeholder="20" oninput="calcNewRate()">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Высота (см)</label>
+          <input type="number" id="calcSampleH" placeholder="30" oninput="calcNewRate()">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Расход (мл)</label>
+          <input type="number" id="calcSampleMl" placeholder="100" oninput="calcNewRate()">
+        </div>
+      </div>
+      <div style="font-size:13px; color:var(--primary); font-weight:600; margin-top:8px;" id="calcRateResult">
+        Норма на 1 кв.м: —
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <div class="form-group" style="flex:1;">
+        <label>Удельный вес (г/л) — необяз.</label>
+        <input type="text" id="calcNewWeight" placeholder="1.3">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>Техника нанесения — необяз.</label>
+        <input type="text" id="calcNewTech" placeholder="Например: Кисть">
+      </div>
+    </div>
+    
+    <div class="form-group" style="margin-top:16px;">
+      <label>Инструмент — необяз.</label>
+      <input type="text" id="calcNewTool" placeholder="Например: Валик 8 мм">
+    </div>
+
+    <div class="form-group" style="margin-top:16px;">
+      <label>Дополнительная информация — необяз.</label>
+      <textarea id="calcNewNotes" rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Например: Наносить при t > 15°C"></textarea>
+    </div>
+
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveNewRate()">Сохранить норму</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ВЫБОРА МАТЕРИАЛОВ ДЛЯ СРАВНЕНИЯ -->
+<div class="modal-overlay" id="compareModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('compareModal')">×</button>
+    <h3>Создать сопоставление</h3>
+    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы, которые хотите сравнить на одной шкале:</p>
+    <div id="compareCheckboxes" style="display:flex; flex-direction:column; gap:10px; margin-top:16px; max-height:300px; overflow-y:auto;"></div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveComparisonGroup()">Создать шкалу</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ПАЛИТРЫ -->
+<div class="modal-overlay" id="paletteModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('paletteModal')">×</button>
+    <h3 id="paletteModalTitle">Добавить палитру</h3>
+    <input type="hidden" id="palEditId">
+    
+    <div class="form-group">
+      <label>Название палитры *</label>
+      <input type="text" id="palNewName" placeholder="Например: Tikkurila">
+    </div>
+    
+    <div class="form-group" style="margin-top:12px;">
+      <label>Ссылка на сайт (URL)</label>
+      <input type="text" id="palNewUrl" placeholder="https://...">
+    </div>
+
+    <div class="form-group" style="margin-top:12px;">
+      <label>Фото (обложка)</label>
+      <input type="file" id="palNewImg" accept="image/*" style="padding:8px;">
+      <div id="palImgPreview" style="margin-top:8px; font-size:13px; color:var(--text-muted);"></div>
+    </div>
+
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="savePalette()">Сохранить</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==========================================
+// 1. НАСТРОЙКИ SUPABASE
+// ==========================================
+const SUPABASE_URL = 'https://hdsfocdvtgfzagqvgrtv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhkc2ZvY2R2dGdmemFncXZncnR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNzE3NDQsImV4cCI6MjEwNzg0Nzc0NH0._DmYReNHr6D-qB1GfjSJ9A55SAtbVyXnOSZim13nWSs';
+
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============ УТИЛИТЫ ============
+const $=id=>document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.className='toast show';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3000); }
+
+// ============ АВТОРИЗАЦИЯ ============
+async function login() {
+  const email = $('authEmail').value;
+  const pass = $('authPass').value;
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+  
+  if (error) {
+    $('authError').textContent = error.message;
+    $('authError').style.display = 'block';
+  } else { checkAuth(); }
+}
+
+async function logout() { await supabaseClient.auth.signOut(); location.reload(); }
+
+async function checkAuth() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    $('authScreen').style.display = 'none';
+    $('appScreen').style.display = 'flex';
+    initApp(); 
+  } else {
+    $('authScreen').style.display = 'flex';
+    $('appScreen').style.display = 'none';
+  }
+}
+
+// ============ НАВИГАЦИЯ ============
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  $(`tab-${tabId}`).style.display = 'block';
+  el.classList.add('active');
+}
+
+// ============ ИНИЦИАЛИЗАЦИЯ ============
+let faqData = [];
+let materialsData = [];
+let matchData = [];
+let ratesData = [];
+let palettesData = [];
+let comparisonGroups = [];
+let tempPaletteImg = null;
+
+async function initApp() {
+  faqData = [
+    { id: 1, q: "Какой расход у краски Tikkurila?", a: "Расход зависит от материала, в среднем 1 литр на 8-10 кв.м.", author: "admin" },
+    { id: 2, q: "Как разбавить грунтовку?", a: "", author: "admin" }
+  ];
+
+  materialsData = [
+    { id: 1, name: "San Pierre Premium", price: 5, pros: ["Идеальная текстура", "Долговечность"], cons: ["Высокая цена", "Долго сохнет"] },
+    { id: 2, name: "Material X Альтернатива", price: 3, pros: ["Хорошая цена", "Быстро сохнет"], cons: ["Чуть хуже текстура"] },
+    { id: 3, name: "Бюджетный аналог Y", price: 1, pros: ["Самая низкая цена"], cons: ["Требует 2 слоя", "Мел"] },
+    { id: 4, name: "Универсальный состав Z", price: 2, pros: ["Подходит везде"], cons: ["Средняя стойкость"] },
+    { id: 5, name: "Премиум Люкс", price: 5, pros: ["Шикарный вид"], cons: ["Очень дорого"] }
+  ];
+  
+  matchData = [
+    { id: 1, code: "NCS S 1500-N", color: "Бежевый МКА" },
+    { id: 2, code: "RAL 9010", color: "Чистый белый Замша" }
+  ];
+
+  ratesData = [
+    { id: 1, name: "Краска Интерьерная", rate: 0.15, weight: "1.3", tech: "Валик", notes: "Наносить в 2 слоя" },
+    { id: 2, name: "Грунтовка глубокого проникновения", rate: 0.1, weight: "1.0", tech: "Краскопульт", notes: "Разбавить водой 1:5" }
+  ];
+
+  palettesData = [
+    { id: 1, name: "Tikkurila", url: "https://www.tikkurila.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Tikkurila" },
+    { id: 2, name: "Caparol", url: "https://www.caparol.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Caparol" },
+    { id: 3, name: "Dulux", url: "https://www.dulux.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Dulux" }
+  ];
+
+  comparisonGroups = [
+    { id: 1, materialIds: [1, 2, 3] } 
+  ];
+
+  renderFaq();
+  renderMaterials();
+  renderMatches();
+  renderCalculator();
+  renderPalettes();
+}
+
+// --- FAQ ---
+function renderFaq() {
+  const query = $('faqSearch').value.toLowerCase();
+  const list = $('faqList');
+  
+  const filtered = faqData.filter(item => 
+    item.q.toLowerCase().includes(query) || (item.a && item.a.toLowerCase().includes(query))
+  );
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="openFaqModal()">Задать вопрос</button></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => {
+    const hasAnswer = item.a && item.a.trim().length > 0;
+    
+    const answerHtml = hasAnswer ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;"><p>${item.a}</p></div>` : '';
+    const statusHtml = hasAnswer 
+      ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>`
+      : `<div class="status-badge no-answer">Ожидает ответа</div>`;
+
+    return `
+      <div class="faq-item">
+        <div class="faq-header">
+          <div class="faq-q">${item.q}</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            ${statusHtml}
+            <button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button>
+          </div>
+        </div>
+        ${answerHtml}
+      </div>
+    `;
+  }).join('');
+}
+
+function openFaqModal() { $('faqModal').classList.add('active'); }
+function saveFaq() {
+  const q = $('faqNewQ').value;
+  const a = $('faqNewA').value;
+  if (!q) { alert('Введите вопрос'); return; }
+  
+  faqData.unshift({ id: Date.now(), q, a, author: "manager" });
+  closeModal('faqModal');
+  renderFaq();
+  toast('Вопрос сохранен');
+}
+
+function deleteFaq(id) {
+  if (!confirm('Удалить этот вопрос?')) return;
+  faqData = faqData.filter(item => item.id !== id);
+  renderFaq();
+  toast('Вопрос удален');
+}
+
+// --- МАТЕРИАЛЫ (СРАВНЕНИЕ) ---
+function renderMaterials() {
+  const query = $('materialSearch').value.toLowerCase();
+  
+  const compContainer = $('comparisonsContainer');
+  compContainer.innerHTML = comparisonGroups.map(group => {
+    const selected = materialsData.filter(m => group.materialIds.includes(m.id));
+    if (selected.length === 0) return '';
+
+    let markersHtml = '';
+    selected.forEach((m, index) => {
+      const leftPos = ((m.price - 1) / 4) * 100;
+      markersHtml += `
+        <div class="material-marker" style="left: ${leftPos}%;">
+          <div class="material-label">${m.name}</div>
+          <div class="material-line" style="height: ${20 + (5 - m.price) * 5}px;"></div>
+          <div class="material-dot" style="background: ${m.price >= 4 ? 'var(--danger)' : (m.price >= 3 ? 'var(--warning)' : 'var(--success)')}"></div>
+        </div>
+      `;
+    });
+
+    return `
+      <div class="comparison-block">
+        <button class="danger icon-btn comparison-remove" onclick="deleteComparisonGroup(${group.id})" title="Удалить шкалу">×</button>
+        <h4 style="margin-top:0; margin-bottom:20px;">Шкала сравнения #${group.id}</h4>
+        <div class="materials-scale-container">
+          <div class="scale-labels">
+            <span>Доступный</span>
+            <span>Средний</span>
+            <span>Дорогой</span>
+          </div>
+          ${markersHtml}
+        </div>
+        
+        <div class="grid grid-2">
+          ${selected.map(m => `
+            <div class="card" style="box-shadow:none; border-color:#eee;">
+              <div class="material-title">${m.name}</div>
+              <div style="margin-top:12px;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Цена (${m.price}/5)</div>
+                <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
+                   <div style="height:100%; width:${m.price*20}%; background:${m.price >= 4 ? 'var(--danger)' : (m.price >= 3 ? 'var(--warning)' : 'var(--success)')}; border-radius:4px;"></div>
+                </div>
+              </div>
+              <div class="material-pros-cons">
+                <div class="pros" style="flex:1;">
+                  <strong>Плюсы:</strong><br>
+                  ${m.pros.map(p => `+ ${p}`).join('<br>')}
+                </div>
+                <div class="cons" style="flex:1;">
+                  <strong>Минусы:</strong><br>
+                  ${m.cons.map(c => `- ${c}`).join('<br>')}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const grid = $('materialsList');
+  const filtered = materialsData.filter(m => m.name.toLowerCase().includes(query));
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(m => {
+    let barColor = 'var(--success)';
+    if (m.price >= 4) barColor = 'var(--danger)';
+    else if (m.price >= 3) barColor = 'var(--warning)';
+
+    return `
+      <div class="card material-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="material-title">${m.name}</div>
+          <button class="danger icon-btn" onclick="deleteMaterial(${m.id})" title="Удалить">×</button>
+        </div>
+        
+        <div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Ценовая категория (${m.price}/5):</div>
+          <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
+             <div style="height:100%; width:${m.price*20}%; background:${barColor}; border-radius:4px;"></div>
+          </div>
+        </div>
+
+        <div class="material-pros-cons">
+          <div class="pros" style="flex:1;">
+            <strong>Плюсы:</strong><br>
+            ${m.pros.map(p => `+ ${p}`).join('<br>')}
+          </div>
+          <div class="cons" style="flex:1;">
+            <strong>Минусы:</strong><br>
+            ${m.cons.map(c => `- ${c}`).join('<br>')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openMaterialModal() { $('materialModal').classList.add('active'); }
+function saveMaterial() {
+  const name = $('matNewName').value;
+  const price = parseInt($('matNewPrice').value);
+  const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const cons = $('matNewCons').value.split(',').map(s=>s.trim()).filter(Boolean);
+  
+  if (!name) { alert('Введите название'); return; }
+
+  materialsData.push({ id: Date.now(), name, price, pros, cons });
+  closeModal('materialModal');
+  renderMaterials();
+  toast('Материал добавлен');
+}
+
+function deleteMaterial(id) {
+  if (!confirm('Удалить материал?')) return;
+  materialsData = materialsData.filter(m => m.id !== id);
+  comparisonGroups.forEach(g => {
+    g.materialIds = g.materialIds.filter(mId => mId !== id);
+  });
+  comparisonGroups = comparisonGroups.filter(g => g.materialIds.length > 0);
+  renderMaterials();
+}
+
+function addComparisonGroup() {
+  const container = $('compareCheckboxes');
+  container.innerHTML = materialsData.map(m => `
+    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+      <input type="checkbox" value="${m.id}" class="compare-checkbox">
+      ${m.name} (Категория ${m.price})
+    </label>
+  `).join('');
+  $('compareModal').classList.add('active');
+}
+
+function saveComparisonGroup() {
+  const checkboxes = document.querySelectorAll('.compare-checkbox:checked');
+  const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+  
+  if (selectedIds.length < 2) {
+    alert('Выберите хотя бы 2 материала для сравнения');
+    return;
+  }
+
+  comparisonGroups.push({ id: Date.now(), materialIds: selectedIds });
+  closeModal('compareModal');
+  renderMaterials();
+  toast('Шкала сравнения создана');
+}
+
+function deleteComparisonGroup(id) {
+  if (!confirm('Удалить эту шкалу сравнения?')) return;
+  comparisonGroups = comparisonGroups.filter(g => g.id !== id);
+  renderMaterials();
+}
+
+// --- СООТВЕТСТВИЯ ---
+function renderMatches() {
+  const query = $('matchSearch').value.toLowerCase();
+  const tbody = $('matchTableBody');
+  
+  const filtered = matchData.filter(m => 
+    m.code.toLowerCase().includes(query) || m.color.toLowerCase().includes(query)
+  );
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 40px; color: var(--text-muted);">
+      Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="prefillMatch('${query}')">Создать соответствие</button>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(m => `
+    <tr>
+      <td>
+        <div class="match-inputs">
+          <input type="text" value="${m.code}" onchange="updateMatch(${m.id}, 'code', this.value)" placeholder="NCS / RAL">
+        </div>
+      </td>
+      <td>
+        <div class="match-inputs">
+          <input type="text" value="${m.color}" onchange="updateMatch(${m.id}, 'color', this.value)" placeholder="МКА / Замша">
+        </div>
+      </td>
+      <td>
+        <button class="danger icon-btn" onclick="deleteMatch(${m.id})" title="Удалить">×</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function addMatchRow() {
+  matchData.push({ id: Date.now(), code: "", color: "" });
+  renderMatches();
+}
+
+function updateMatch(id, field, value) {
+  const m = matchData.find(x => x.id === id);
+  if (m) m[field] = value;
+}
+
+function deleteMatch(id) {
+  matchData = matchData.filter(x => x.id !== id);
+  renderMatches();
+}
+
+function prefillMatch(text) {
+  $('matchCode').value = text;
+  $('matchModal').classList.add('active');
+}
+
+function saveMatch() {
+  const code = $('matchCode').value;
+  const color = $('matchColorName').value;
+  if (!code || !color) { alert('Заполните поля'); return; }
+  
+  matchData.push({ id: Date.now(), code, color });
+  closeModal('matchModal');
+  renderMatches();
+  toast('Соответствие добавлено');
+}
+
+// --- КАЛЬКУЛЯТОР ---
+function renderCalculator() {
+  const select = $('calcMaterial');
+  select.innerHTML = '<option value="">-- Выберите материал --</option>' + 
+    ratesData.map(r => `<option value="${r.rate}">${r.name} (${r.rate * 1000} мл/м²)</option>`).join('');
+
+  const list = $('consumptionList');
+  list.innerHTML = ratesData.map(r => `
+    <div style="border:1px solid var(--border); padding:12px; border-radius:8px;">
+      <div style="font-weight:600; font-size:15px;">${r.name}</div>
+      <div style="color:var(--primary); font-weight:700; margin:4px 0;">${r.rate * 1000} мл / м²</div>
+      ${r.weight ? `<div style="font-size:13px; color:var(--text-muted);">Вес: ${r.weight}</div>` : ''}
+      ${r.tech ? `<div style="font-size:13px; color:var(--text-muted);">Техника: ${r.tech}</div>` : ''}
+      ${r.notes ? `<div style="font-size:13px; color:var(--text-muted); font-style:italic; margin-top:4px;">"${r.notes}"</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function updateCalc() {
+  const baseConsumption = parseFloat($('calcMaterial').value); // л/м²
+  const area = parseFloat($('calcArea').value) || 0;
+  const techName = $('calcTechName').value || 'Стандарт';
+  const techCoef = parseFloat($('calcTechCoef').value) || 1.0;
+  const layers = parseFloat($('calcLayers').value);
+
+  if (area > 0 && baseConsumption > 0) {
+    const rawTotal = area * baseConsumption * techCoef * layers;
+    const total = rawTotal * 1.10; // +10% запас
+    
+    $('calcTotalLitres').textContent = total.toFixed(2);
+    $('calcInfoText').innerHTML = `Расход: ${baseConsumption} л/м² × ${area} м² × ${layers} сл. × ${techCoef} (${techName}) + 10% запас`;
+    $('calcResult').style.display = 'block';
+  } else {
+    $('calcResult').style.display = 'none';
+  }
+}
+
+function openCalcModal() {
+  $('calcNewName').value = '';
+  $('calcSampleW').value = '20';
+  $('calcSampleH').value = '30';
+  $('calcSampleMl').value = '100';
+  $('calcNewWeight').value = '';
+  $('calcNewTech').value = '';
+  $('calcNewNotes').value = '';
+  $('calcRateResult').textContent = 'Норма на 1 кв.м: —';
+  $('calcModal').classList.add('active');
+}
+
+function calcNewRate() {
+  const w = parseFloat($('calcSampleW').value) / 100;
+  const h = parseFloat($('calcSampleH').value) / 100;
+  const ml = parseFloat($('calcSampleMl').value);
+
+  if (w > 0 && h > 0 && ml > 0) {
+    const areaSample = w * h;
+    const rateMl = ml / areaSample;
+    const rateL = rateMl / 1000;
+    $('calcRateResult').textContent = `Норма на 1 кв.м: ${rateMl.toFixed(1)} мл (${rateL.toFixed(3)} л)`;
+    $('calcRateResult').dataset.rate = rateL;
+  } else {
+    $('calcRateResult').textContent = 'Норма на 1 кв.м: —';
+    delete $('calcRateResult').dataset.rate;
+  }
+}
+
+function saveNewRate() {
+  const name = $('calcNewName').value;
+  const rate = parseFloat($('calcRateResult').dataset.rate);
+  
+  if (!name || isNaN(rate)) { alert('Введите название и корректные данные образца'); return; }
+  
+  const newRate = {
+    id: Date.now(),
+    name: name,
+    rate: rate,
+    weight: $('calcNewWeight').value,
+    tech: $('calcNewTech').value,
+    tool: $('calcNewTool').value,
+    notes: $('calcNewNotes').value
+  };
+
+  ratesData.push(newRate);
+  closeModal('calcModal');
+  renderCalculator();
+  toast('Норма сохранена');
+}
+
+// --- ПАЛИТРЫ ---
+function renderPalettes() {
+  const query = $('paletteSearch').value.toLowerCase();
+  const grid = $('palettesList');
+  
+  const filtered = palettesData.filter(p => p.name.toLowerCase().includes(query));
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="card palette-card" onclick="window.open('${p.url}', '_blank')">
+      <div class="palette-actions" onclick="event.stopPropagation()">
+        <button class="primary" onclick="openPaletteModal(${p.id})" title="Редактировать">✎</button>
+        <button class="danger" onclick="deletePalette(${p.id})" title="Удалить">×</button>
+      </div>
+      <img src="${p.img}" class="palette-img" alt="${p.name}">
+      <div class="palette-name">${p.name}</div>
+    </div>
+  `).join('');
+}
+
+function openPaletteModal(id = null) {
+  const title = $('paletteModalTitle');
+  const editId = $('palEditId');
+  const nameInput = $('palNewName');
+  const urlInput = $('palNewUrl');
+  const imgInput = $('palNewImg');
+  const preview = $('palImgPreview');
+
+  // Сброс
+  imgInput.value = '';
+  preview.innerHTML = '';
+  tempPaletteImg = null;
+
+  if (id) {
+    const p = palettesData.find(x => x.id === id);
+    title.textContent = 'Редактировать палитру';
+    editId.value = p.id;
+    nameInput.value = p.name;
+    urlInput.value = p.url;
+    tempPaletteImg = p.img;
+    preview.innerHTML = `<img src="${p.img}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(текущее фото)</span>`;
+  } else {
+    title.textContent = 'Добавить палитру';
+    editId.value = '';
+    nameInput.value = '';
+    urlInput.value = '';
+  }
+
+  $('paletteModal').classList.add('active');
+}
+
+// Обработка загрузки файла
+document.addEventListener('DOMContentLoaded', () => {
+  $('palNewImg').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      tempPaletteImg = ev.target.result; // base64
+      $('palImgPreview').innerHTML = `<img src="${tempPaletteImg}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(новое фото)</span>`;
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+function savePalette() {
+  const id = $('palEditId').value;
+  const name = $('palNewName').value;
+  const url = $('palNewUrl').value || '#';
+  
+  if (!name) { alert('Введите название палитры'); return; }
+  if (!tempPaletteImg) { alert('Пожалуйста, выберите фото для палитры'); return; }
+
+  if (id) {
+    // Редактирование
+    const p = palettesData.find(x => String(x.id) === String(id));
+    p.name = name;
+    p.url = url;
+    p.img = tempPaletteImg;
+    toast('Палитра обновлена');
+  } else {
+    // Создание
+    palettesData.push({
+      id: Date.now(),
+      name: name,
+      url: url,
+      img: tempPaletteImg
+    });
+    toast('Палитра добавлена');
+  }
+
+  closeModal('paletteModal');
+  renderPalettes();
+}
+
+function deletePalette(id) {
+  if (!confirm('Удалить эту палитру?')) return;
+  palettesData = palettesData.filter(p => p.id !== id);
+  renderPalettes();
+  toast('Палитра удалена');
+}
+
+// --- МОДАЛКИ ---
+function closeModal(id) { $(id).classList.remove('active'); }
+
+// СТАРТ
+checkAuth();
+</script>
+</body>
+</html>
