@@ -169,23 +169,14 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: 0.3s; z-index: 2000; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* --- АДАПТИВ --- */
   @media (max-width: 768px) {
     body { flex-direction: column; }
-    
     .mobile-header { display: flex; }
-    
-    .sidebar { 
-      position: fixed; top: 57px; left: 0; bottom: 0; 
-      transform: translateX(-100%); 
-      box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-    }
+    .sidebar { position: fixed; top: 57px; left: 0; bottom: 0; transform: translateX(-100%); box-shadow: 4px 0 15px rgba(0,0,0,0.1); }
     .sidebar.open { transform: translateX(0); }
-    
     .main-content { padding: 20px; }
     .grid-2, .grid-4 { grid-template-columns: 1fr; }
     .sidebar-image-container { display: none; } 
-    
     .faq-header { flex-direction: column; gap: 8px; }
     .status-badge { align-self: flex-start; }
   }
@@ -193,7 +184,6 @@
 </head>
 <body>
 
-<!-- ЭКРАН ВХОДА -->
 <div id="authScreen">
   <div class="auth-box">
     <h2>Портал менеджера</h2>
@@ -204,10 +194,8 @@
   </div>
 </div>
 
-<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
 <div id="appScreen" style="display:none; width:100%; height:100%; flex-direction: column;">
   
-  <!-- МОБИЛЬНАЯ ШАПКА -->
   <div class="mobile-header">
     <div style="font-weight:700;">С заботой ❤️</div>
     <button onclick="toggleSidebar()" style="padding:6px; border:none; background:transparent;">
@@ -216,7 +204,6 @@
   </div>
 
   <div style="display:flex; flex:1; overflow:hidden; position:relative;">
-    <!-- САЙДБАР -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         С заботой, от склада ❤️
@@ -258,9 +245,7 @@
       </div>
     </div>
 
-    <!-- КОНТЕНТ -->
     <div class="main-content">
-      
       <!-- РАЗДЕЛ 1: FAQ -->
       <div id="tab-faq" class="tab-content">
         <div class="page-header">
@@ -270,9 +255,8 @@
           </div>
           <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
         </div>
-        
         <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="renderFaq()">
-        <div class="card" id="faqList"></div>
+        <div class="card" id="faqList">Загрузка...</div>
       </div>
 
       <!-- РАЗДЕЛ 2: ПРЕДЛОЖЕНИЯ -->
@@ -284,7 +268,7 @@
           </div>
           <button class="primary" onclick="openIdeaModal()">+ Предложить идею</button>
         </div>
-        <div id="ideasList"></div>
+        <div id="ideasList">Загрузка...</div>
       </div>
 
       <!-- РАЗДЕЛ 3: МАТЕРИАЛЫ -->
@@ -299,12 +283,10 @@
             <button class="primary" onclick="openMaterialModal()">+ Материал</button>
           </div>
         </div>
-
         <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
-        
         <div id="comparisonsContainer"></div>
         <h3 style="margin-top:40px;">Все материалы</h3>
-        <div class="grid grid-2" id="materialsList"></div>
+        <div class="grid grid-2" id="materialsList">Загрузка...</div>
       </div>
 
       <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
@@ -316,9 +298,7 @@
           </div>
           <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
         </div>
-        
         <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию цвета..." oninput="renderMatches()">
-
         <div class="card">
           <table class="match-table">
             <thead>
@@ -328,7 +308,7 @@
                 <th style="width:50px;"></th>
               </tr>
             </thead>
-            <tbody id="matchTableBody"></tbody>
+            <tbody id="matchTableBody">Загрузка...</tbody>
           </table>
         </div>
       </div>
@@ -346,28 +326,23 @@
         <div class="calc-container">
           <div class="card calc-form">
             <h3 style="margin-top:0;">Калькулятор</h3>
-            
             <div class="form-group">
               <label>Выберите материал из базы</label>
               <select id="calcMaterial" onchange="updateCalc()"></select>
             </div>
-            
             <div class="form-group">
               <label>Площадь покрытия (кв. м)</label>
               <input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()">
             </div>
-
             <div class="form-group">
               <label>Техника нанесения (название)</label>
               <input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()">
             </div>
-
             <div class="form-group">
               <label>Коэффициент расхода техники</label>
               <input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()">
               <div style="font-size:12px; color:var(--text-muted);">Стандарт = 1.0. Краскопульт = 1.15. Кельма = 0.9</div>
             </div>
-
             <div class="form-group">
               <label>Количество слоев (от 1 до 7)</label>
               <select id="calcLayers" onchange="updateCalc()">
@@ -380,7 +355,6 @@
                 <option value="7">7 слоев</option>
               </select>
             </div>
-
             <div class="calc-result" id="calcResult" style="display:none;">
               <h4>Необходимо закупить:</h4>
               <div class="number" id="calcTotalLitres">0</div>
@@ -390,7 +364,7 @@
 
           <div class="card calc-list">
             <h3 style="margin-top:0;">База расходов</h3>
-            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">Загрузка...</div>
           </div>
         </div>
       </div>
@@ -404,9 +378,8 @@
           </div>
           <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
         </div>
-
         <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
-        <div class="grid grid-4" id="palettesList"></div>
+        <div class="grid grid-4" id="palettesList">Загрузка...</div>
       </div>
 
     </div>
@@ -506,12 +479,10 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('calcModal')">×</button>
     <h3>Добавить норму расхода</h3>
-    
     <div class="form-group">
       <label>Название материала *</label>
       <input type="text" id="calcNewName" placeholder="Например: Краска Интерьерная">
     </div>
-    
     <div style="background:var(--bg); padding:16px; border-radius:8px; margin-top:16px;">
       <p style="margin-top:0; font-size:13px; font-weight:600; color:var(--text-muted);">Расчет по образцу</p>
       <div style="display:flex; gap:10px;">
@@ -532,7 +503,6 @@
         Норма на 1 кв.м: —
       </div>
     </div>
-
     <div style="display:flex; gap:10px; margin-top:16px;">
       <div class="form-group" style="flex:1;">
         <label>Удельный вес (г/л) — необяз.</label>
@@ -543,17 +513,14 @@
         <input type="text" id="calcNewTech" placeholder="Например: Кисть">
       </div>
     </div>
-    
     <div class="form-group" style="margin-top:16px;">
       <label>Инструмент — необяз.</label>
       <input type="text" id="calcNewTool" placeholder="Например: Валик 8 мм">
     </div>
-
     <div class="form-group" style="margin-top:16px;">
       <label>Дополнительная информация — необяз.</label>
       <textarea id="calcNewNotes" rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Например: Наносить при t > 15°C"></textarea>
     </div>
-
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveNewRate()">Сохранить норму</button>
   </div>
 </div>
@@ -573,23 +540,19 @@
     <button class="modal-close" onclick="closeModal('paletteModal')">×</button>
     <h3 id="paletteModalTitle">Добавить палитру</h3>
     <input type="hidden" id="palEditId">
-    
     <div class="form-group">
       <label>Название палитры *</label>
       <input type="text" id="palNewName" placeholder="Например: Tikkurila">
     </div>
-    
     <div class="form-group" style="margin-top:12px;">
       <label>Ссылка на сайт (URL)</label>
       <input type="text" id="palNewUrl" placeholder="https://...">
     </div>
-
     <div class="form-group" style="margin-top:12px;">
       <label>Фото (обложка)</label>
       <input type="file" id="palNewImg" accept="image/*" style="padding:8px;">
       <div id="palImgPreview" style="margin-top:8px; font-size:13px; color:var(--text-muted);"></div>
     </div>
-
     <button class="primary" style="width:100%; margin-top:16px;" onclick="savePalette()">Сохранить</button>
   </div>
 </div>
@@ -651,72 +614,44 @@ function switchTab(tabId, el) {
   $(`tab-${tabId}`).style.display = 'block';
   el.classList.add('active');
   
-  // Закрываем меню на телефоне
-  if (window.innerWidth <= 768) {
-    $('sidebar').classList.remove('open');
-  }
+  if (window.innerWidth <= 768) $('sidebar').classList.remove('open');
 }
 
-function toggleSidebar() {
-  $('sidebar').classList.toggle('open');
-}
+function toggleSidebar() { $('sidebar').classList.toggle('open'); }
 
-// ============ ИНИЦИАЛИЗАЦИЯ ============
+// ============ ИНИЦИАЛИЗАЦИЯ И ЗАГРУЗКА ДАННЫХ ============
 let faqData = [];
 let ideasData = [];
 let materialsData = [];
 let matchData = [];
 let ratesData = [];
 let palettesData = [];
-let comparisonGroups = [];
+let comparisonGroups = []; // Локальная группировка для шкал (пока в памяти)
 let tempPaletteImg = null;
 
 async function initApp() {
-  faqData = [
-    { id: 1, q: "Какой расход у краски Tikkurila?", a: "Расход зависит от материала, в среднем 1 литр на 8-10 кв.м.", author: "manager1@sklad.ru", answerAuthor: "admin@sklad.ru" },
-    { id: 2, q: "Как разбавить грунтовку?", a: "", author: "manager2@sklad.ru", answerAuthor: null }
-  ];
-
-  ideasData = [
-    { id: 1, title: "Купить новую тележку для склада", desc: "Старая скрипит и медленно едет.", likes: ["admin@sklad.ru"] },
-    { id: 2, title: "Сделать больше света над стеллажом 4", desc: "", likes: [] }
-  ];
-
-  materialsData = [
-    { id: 1, name: "San Pierre Premium", price: 5, pros: ["Идеальная текстура", "Долговечность"], cons: ["Высокая цена", "Долго сохнет"] },
-    { id: 2, name: "Material X Альтернатива", price: 3, pros: ["Хорошая цена", "Быстро сохнет"], cons: ["Чуть хуже текстура"] },
-    { id: 3, name: "Бюджетный аналог Y", price: 1, pros: ["Самая низкая цена"], cons: ["Требует 2 слоя", "Мел"] }
-  ];
-  
-  matchData = [
-    { id: 1, code: "NCS S 1500-N", color: "Бежевый МКА" }
-  ];
-
-  ratesData = [
-    { id: 1, name: "Краска Интерьерная", rate: 0.15, weight: "1.3", tech: "Валик", notes: "Наносить в 2 слоя" }
-  ];
-
-  palettesData = [
-    { id: 1, name: "Tikkurila", url: "https://www.tikkurila.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Tikkurila" }
-  ];
-
-  comparisonGroups = [];
-
-  renderFaq();
-  renderIdeas();
-  renderMaterials();
-  renderMatches();
-  renderCalculator();
-  renderPalettes();
+  await loadFaq();
+  await loadIdeas();
+  await loadMaterials();
+  await loadMatches();
+  await loadRates();
+  await loadPalettes();
 }
 
-// --- FAQ ---
+// ============ FAQ ============
+async function loadFaq() {
+  const { data, error } = await supabaseClient.from('faq').select('*').order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  faqData = data;
+  renderFaq();
+}
+
 function renderFaq() {
   const query = $('faqSearch').value.toLowerCase();
   const list = $('faqList');
   
   const filtered = faqData.filter(item => 
-    item.q.toLowerCase().includes(query) || (item.a && item.a.toLowerCase().includes(query))
+    item.question.toLowerCase().includes(query) || (item.answer && item.answer.toLowerCase().includes(query))
   );
 
   if (filtered.length === 0) {
@@ -725,12 +660,12 @@ function renderFaq() {
   }
 
   list.innerHTML = filtered.map(item => {
-    const hasAnswer = item.a && item.a.trim().length > 0;
+    const hasAnswer = item.answer && item.answer.trim().length > 0;
     
     const answerHtml = hasAnswer 
       ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;">
-           <p>${item.a}</p>
-           <div class="faq-answer-author">Ответил: ${item.answerAuthor || 'Неизвестно'}</div>
+           <p>${item.answer}</p>
+           <div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div>
          </div>` 
       : '';
       
@@ -742,8 +677,8 @@ function renderFaq() {
       <div class="faq-item">
         <div class="faq-header">
           <div>
-            <div class="faq-q">${item.q}</div>
-            <div class="faq-author">Спросил: ${item.author}</div>
+            <div class="faq-q">${item.question}</div>
+            <div class="faq-author">Спросил: ${item.author_email}</div>
           </div>
           <div style="display:flex; gap:8px; align-items:center;">
             ${statusHtml}
@@ -757,71 +692,82 @@ function renderFaq() {
 }
 
 function openFaqModal() { $('faqModal').classList.add('active'); }
-function saveFaq() {
+async function saveFaq() {
   const q = $('faqNewQ').value;
   const a = $('faqNewA').value;
   if (!q) { alert('Введите вопрос'); return; }
   
-  faqData.unshift({ 
-    id: Date.now(), 
-    q: q, 
-    a: a, 
-    author: currentUserEmail, 
-    answerAuthor: a ? currentUserEmail : null 
-  });
+  const { error } = await supabaseClient.from('faq').insert([{ 
+    question: q, 
+    answer: a || null, 
+    author_email: currentUserEmail,
+    answer_author: a ? currentUserEmail : null 
+  }]);
+
+  if (error) { alert('Ошибка: ' + error.message); return; }
+
   closeModal('faqModal');
-  renderFaq();
+  await loadFaq();
   toast('Вопрос сохранен');
 }
 
-function deleteFaq(id) {
+async function deleteFaq(id) {
   if (!confirm('Удалить этот вопрос?')) return;
-  faqData = faqData.filter(item => item.id !== id);
-  renderFaq();
+  await supabaseClient.from('faq').delete().eq('id', id);
+  await loadFaq();
   toast('Вопрос удален');
 }
 
 function openAnswerModal(id) {
   const item = faqData.find(x => x.id === id);
   if (!item) return;
-  $('faqQuestionText').textContent = item.q;
+  $('faqQuestionText').textContent = item.question;
   $('faqAnswerId').value = id;
   $('faqAnswerText').value = '';
   $('faqAnswerModal').classList.add('active');
 }
 
-function saveFaqAnswer() {
+async function saveFaqAnswer() {
   const id = parseInt($('faqAnswerId').value);
   const a = $('faqAnswerText').value;
-  
   if (!a) { alert('Введите ответ'); return; }
   
-  const item = faqData.find(x => x.id === id);
-  if (item) {
-    item.a = a;
-    item.answerAuthor = currentUserEmail;
-  }
+  const { error } = await supabaseClient.from('faq').update({ 
+    answer: a, 
+    answer_author: currentUserEmail 
+  }).eq('id', id);
+
+  if (error) { alert('Ошибка: ' + error.message); return; }
   
   closeModal('faqAnswerModal');
-  renderFaq();
+  await loadFaq();
   toast('Ответ добавлен');
 }
 
-// --- ПРЕДЛОЖЕНИЯ (АНОНИМНО) ---
+// ============ ПРЕДЛОЖЕНИЯ ============
+async function loadIdeas() {
+  const { data: ideas, error } = await supabaseClient.from('ideas').select('*, idea_likes(user_email)').order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  ideasData = ideas;
+  renderIdeas();
+}
+
 function renderIdeas() {
   const list = $('ideasList');
   
   list.innerHTML = ideasData.map(item => {
-    const isLiked = item.likes.includes(currentUserEmail);
+    const isLiked = item.idea_likes.some(l => l.user_email === currentUserEmail);
+    const likesCount = item.idea_likes.length;
+
     return `
       <div class="card idea-card">
-        <div class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id})">
+        <div class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id}, ${isLiked})">
           <div class="like-icon">${isLiked ? '❤️' : '🤍'}</div>
-          <div class="like-count">${item.likes.length}</div>
+          <div class="like-count">${likesCount}</div>
         </div>
         <div class="idea-content">
           <div class="idea-title">${item.title}</div>
-          ${item.desc ? `<div style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">${item.desc}</div>` : ''}
+          ${item.description ? `<div style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">${item.description}</div>` : ''}
           <div class="idea-author">Анонимно</div>
         </div>
         <button class="danger icon-btn" onclick="deleteIdea(${item.id})" title="Удалить">×</button>
@@ -836,42 +782,46 @@ function openIdeaModal() {
   $('ideaModal').classList.add('active');
 }
 
-function saveIdea() {
+async function saveIdea() {
   const title = $('ideaNewTitle').value;
   const desc = $('ideaNewDesc').value;
   if (!title) { alert('Введите суть предложения'); return; }
 
-  ideasData.unshift({
-    id: Date.now(),
-    title: title,
-    desc: desc,
-    likes: []
-  });
+  const { error } = await supabaseClient.from('ideas').insert([{ 
+    title: title, 
+    description: desc 
+  }]);
+
+  if (error) { alert('Ошибка: ' + error.message); return; }
+
   closeModal('ideaModal');
-  renderIdeas();
+  await loadIdeas();
   toast('Идея отправлена');
 }
 
-function toggleLike(id) {
-  const item = ideasData.find(x => x.id === id);
-  if (!item) return;
-  
-  const index = item.likes.indexOf(currentUserEmail);
-  if (index === -1) {
-    item.likes.push(currentUserEmail);
+async function toggleLike(ideaId, isLiked) {
+  if (isLiked) {
+    await supabaseClient.from('idea_likes').delete().eq('idea_id', ideaId).eq('user_email', currentUserEmail);
   } else {
-    item.likes.splice(index, 1);
+    await supabaseClient.from('idea_likes').insert([{ idea_id: ideaId, user_email: currentUserEmail }]);
   }
-  renderIdeas();
+  await loadIdeas();
 }
 
-function deleteIdea(id) {
+async function deleteIdea(id) {
   if (!confirm('Удалить это предложение?')) return;
-  ideasData = ideasData.filter(x => x.id !== id);
-  renderIdeas();
+  await supabaseClient.from('ideas').delete().eq('id', id);
+  await loadIdeas();
 }
 
-// --- МАТЕРИАЛЫ (СРАВНЕНИЕ) ---
+// ============ МАТЕРИАЛЫ ============
+async function loadMaterials() {
+  const { data, error } = await supabaseClient.from('materials').select('*').order('name');
+  if (error) { console.error(error); return; }
+  materialsData = data;
+  renderMaterials();
+}
+
 function renderMaterials() {
   const query = $('materialSearch').value.toLowerCase();
   
@@ -882,12 +832,12 @@ function renderMaterials() {
 
     let markersHtml = '';
     selected.forEach((m, index) => {
-      const leftPos = ((m.price - 1) / 4) * 100;
+      const leftPos = ((m.price_level - 1) / 4) * 100;
       markersHtml += `
         <div class="material-marker" style="left: ${leftPos}%;">
           <div class="material-label">${m.name}</div>
-          <div class="material-line" style="height: ${20 + (5 - m.price) * 5}px;"></div>
-          <div class="material-dot" style="background: ${m.price >= 4 ? 'var(--danger)' : (m.price >= 3 ? 'var(--warning)' : 'var(--success)')}"></div>
+          <div class="material-line" style="height: ${20 + (5 - m.price_level) * 5}px;"></div>
+          <div class="material-dot" style="background: ${m.price_level >= 4 ? 'var(--danger)' : (m.price_level >= 3 ? 'var(--warning)' : 'var(--success)')}"></div>
         </div>
       `;
     });
@@ -910,9 +860,9 @@ function renderMaterials() {
             <div class="card" style="box-shadow:none; border-color:#eee;">
               <div class="material-title">${m.name}</div>
               <div style="margin-top:12px;">
-                <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Цена (${m.price}/5)</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Цена (${m.price_level}/5)</div>
                 <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
-                   <div style="height:100%; width:${m.price*20}%; background:${m.price >= 4 ? 'var(--danger)' : (m.price >= 3 ? 'var(--warning)' : 'var(--success)')}; border-radius:4px;"></div>
+                   <div style="height:100%; width:${m.price_level*20}%; background:${m.price_level >= 4 ? 'var(--danger)' : (m.price_level >= 3 ? 'var(--warning)' : 'var(--success)')}; border-radius:4px;"></div>
                 </div>
               </div>
               <div class="material-pros-cons">
@@ -942,8 +892,8 @@ function renderMaterials() {
 
   grid.innerHTML = filtered.map(m => {
     let barColor = 'var(--success)';
-    if (m.price >= 4) barColor = 'var(--danger)';
-    else if (m.price >= 3) barColor = 'var(--warning)';
+    if (m.price_level >= 4) barColor = 'var(--danger)';
+    else if (m.price_level >= 3) barColor = 'var(--warning)';
 
     return `
       <div class="card material-card">
@@ -951,14 +901,12 @@ function renderMaterials() {
           <div class="material-title">${m.name}</div>
           <button class="danger icon-btn" onclick="deleteMaterial(${m.id})" title="Удалить">×</button>
         </div>
-        
         <div>
-          <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Ценовая категория (${m.price}/5):</div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Ценовая категория (${m.price_level}/5):</div>
           <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
-             <div style="height:100%; width:${m.price*20}%; background:${barColor}; border-radius:4px;"></div>
+             <div style="height:100%; width:${m.price_level*20}%; background:${barColor}; border-radius:4px;"></div>
           </div>
         </div>
-
         <div class="material-pros-cons">
           <div class="pros" style="flex:1;">
             <strong>Плюсы:</strong><br>
@@ -975,7 +923,7 @@ function renderMaterials() {
 }
 
 function openMaterialModal() { $('materialModal').classList.add('active'); }
-function saveMaterial() {
+async function saveMaterial() {
   const name = $('matNewName').value;
   const price = parseInt($('matNewPrice').value);
   const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean);
@@ -983,20 +931,30 @@ function saveMaterial() {
   
   if (!name) { alert('Введите название'); return; }
 
-  materialsData.push({ id: Date.now(), name, price, pros, cons });
+  const { error } = await supabaseClient.from('materials').insert([{ 
+    name: name, 
+    price_level: price, 
+    pros: pros, 
+    cons: cons 
+  }]);
+
+  if (error) { alert('Ошибка: ' + error.message); return; }
+
   closeModal('materialModal');
-  renderMaterials();
+  await loadMaterials();
   toast('Материал добавлен');
 }
 
-function deleteMaterial(id) {
+async function deleteMaterial(id) {
   if (!confirm('Удалить материал?')) return;
-  materialsData = materialsData.filter(m => m.id !== id);
+  await supabaseClient.from('materials').delete().eq('id', id);
+  
   comparisonGroups.forEach(g => {
     g.materialIds = g.materialIds.filter(mId => mId !== id);
   });
   comparisonGroups = comparisonGroups.filter(g => g.materialIds.length > 0);
-  renderMaterials();
+  
+  await loadMaterials();
 }
 
 function addComparisonGroup() {
@@ -1004,7 +962,7 @@ function addComparisonGroup() {
   container.innerHTML = materialsData.map(m => `
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
       <input type="checkbox" value="${m.id}" class="compare-checkbox">
-      ${m.name} (Категория ${m.price})
+      ${m.name} (Категория ${m.price_level})
     </label>
   `).join('');
   $('compareModal').classList.add('active');
@@ -1031,13 +989,20 @@ function deleteComparisonGroup(id) {
   renderMaterials();
 }
 
-// --- СООТВЕТСТВИЯ ---
+// ============ СООТВЕТСТВИЯ ============
+async function loadMatches() {
+  const { data, error } = await supabaseClient.from('color_matches').select('*').order('created_at');
+  if (error) { console.error(error); return; }
+  matchData = data;
+  renderMatches();
+}
+
 function renderMatches() {
   const query = $('matchSearch').value.toLowerCase();
   const tbody = $('matchTableBody');
   
   const filtered = matchData.filter(m => 
-    m.code.toLowerCase().includes(query) || m.color.toLowerCase().includes(query)
+    m.color_from.toLowerCase().includes(query) || m.color_to.toLowerCase().includes(query)
   );
 
   if (filtered.length === 0) {
@@ -1051,12 +1016,12 @@ function renderMatches() {
     <tr>
       <td>
         <div class="match-inputs">
-          <input type="text" value="${m.code}" onchange="updateMatch(${m.id}, 'code', this.value)" placeholder="NCS / RAL">
+          <input type="text" value="${m.color_from}" onchange="updateMatch(${m.id}, 'color_from', this.value)" placeholder="NCS / RAL">
         </div>
       </td>
       <td>
         <div class="match-inputs">
-          <input type="text" value="${m.color}" onchange="updateMatch(${m.id}, 'color', this.value)" placeholder="МКА / Замша">
+          <input type="text" value="${m.color_to}" onchange="updateMatch(${m.id}, 'color_to', this.value)" placeholder="МКА / Замша">
         </div>
       </td>
       <td>
@@ -1066,19 +1031,21 @@ function renderMatches() {
   `).join('');
 }
 
-function addMatchRow() {
-  matchData.push({ id: Date.now(), code: "", color: "" });
-  renderMatches();
+async function addMatchRow() {
+  await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "" }]);
+  await loadMatches();
 }
 
-function updateMatch(id, field, value) {
+async function updateMatch(id, field, value) {
+  await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id);
+  // Обновляем локально, чтобы не перезагружать всю таблицу
   const m = matchData.find(x => x.id === id);
   if (m) m[field] = value;
 }
 
-function deleteMatch(id) {
-  matchData = matchData.filter(x => x.id !== id);
-  renderMatches();
+async function deleteMatch(id) {
+  await supabaseClient.from('color_matches').delete().eq('id', id);
+  await loadMatches();
 }
 
 function prefillMatch(text) {
@@ -1086,30 +1053,43 @@ function prefillMatch(text) {
   $('matchModal').classList.add('active');
 }
 
-function saveMatch() {
+async function saveMatch() {
   const code = $('matchCode').value;
   const color = $('matchColorName').value;
   if (!code || !color) { alert('Заполните поля'); return; }
   
-  matchData.push({ id: Date.now(), code, color });
+  const { error } = await supabaseClient.from('color_matches').insert([{ 
+    color_from: code, 
+    color_to: color 
+  }]);
+
+  if (error) { alert('Ошибка: ' + error.message); return; }
+
   closeModal('matchModal');
-  renderMatches();
+  await loadMatches();
   toast('Соответствие добавлено');
 }
 
-// --- КАЛЬКУЛЯТОР ---
+// ============ КАЛЬКУЛЯТОР ============
+async function loadRates() {
+  const { data, error } = await supabaseClient.from('consumption_rates').select('*').order('name');
+  if (error) { console.error(error); return; }
+  ratesData = data;
+  renderCalculator();
+}
+
 function renderCalculator() {
   const select = $('calcMaterial');
   select.innerHTML = '<option value="">-- Выберите материал --</option>' + 
-    ratesData.map(r => `<option value="${r.rate}">${r.name} (${r.rate * 1000} мл/м²)</option>`).join('');
+    ratesData.map(r => `<option value="${r.rate_per_sqm}">${r.name} (${r.rate_per_sqm * 1000} мл/м²)</option>`).join('');
 
   const list = $('consumptionList');
   list.innerHTML = ratesData.map(r => `
     <div style="border:1px solid var(--border); padding:12px; border-radius:8px;">
       <div style="font-weight:600; font-size:15px;">${r.name}</div>
-      <div style="color:var(--primary); font-weight:700; margin:4px 0;">${r.rate * 1000} мл / м²</div>
+      <div style="color:var(--primary); font-weight:700; margin:4px 0;">${r.rate_per_sqm * 1000} мл / м²</div>
       ${r.weight ? `<div style="font-size:13px; color:var(--text-muted);">Вес: ${r.weight}</div>` : ''}
-      ${r.tech ? `<div style="font-size:13px; color:var(--text-muted);">Техника: ${r.tech}</div>` : ''}
+      ${r.technique ? `<div style="font-size:13px; color:var(--text-muted);">Техника: ${r.technique}</div>` : ''}
       ${r.notes ? `<div style="font-size:13px; color:var(--text-muted); font-style:italic; margin-top:4px;">"${r.notes}"</div>` : ''}
     </div>
   `).join('');
@@ -1163,29 +1143,36 @@ function calcNewRate() {
   }
 }
 
-function saveNewRate() {
+async function saveNewRate() {
   const name = $('calcNewName').value;
   const rate = parseFloat($('calcRateResult').dataset.rate);
   
   if (!name || isNaN(rate)) { alert('Введите название и корректные данные образца'); return; }
   
-  const newRate = {
-    id: Date.now(),
+  const { error } = await supabaseClient.from('consumption_rates').insert([{
     name: name,
-    rate: rate,
-    weight: $('calcNewWeight').value,
-    tech: $('calcNewTech').value,
-    tool: $('calcNewTool').value,
-    notes: $('calcNewNotes').value
-  };
+    rate_per_sqm: rate,
+    weight: $('calcNewWeight').value || null,
+    technique: $('calcNewTech').value || null,
+    tool: $('calcNewTool').value || null,
+    notes: $('calcNewNotes').value || null
+  }]);
 
-  ratesData.push(newRate);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+
   closeModal('calcModal');
-  renderCalculator();
+  await loadRates();
   toast('Норма сохранена');
 }
 
-// --- ПАЛИТРЫ ---
+// ============ ПАЛИТРЫ (С ФОТО) ============
+async function loadPalettes() {
+  const { data, error } = await supabaseClient.from('warehouse_palettes').select('*').order('name');
+  if (error) { console.error(error); return; }
+  palettesData = data;
+  renderPalettes();
+}
+
 function renderPalettes() {
   const query = $('paletteSearch').value.toLowerCase();
   const grid = $('palettesList');
@@ -1203,7 +1190,7 @@ function renderPalettes() {
         <button class="primary" onclick="openPaletteModal(${p.id})" title="Редактировать">✎</button>
         <button class="danger" onclick="deletePalette(${p.id})" title="Удалить">×</button>
       </div>
-      <img src="${p.img}" class="palette-img" alt="${p.name}">
+      <img src="${p.img_base64 || 'https://placehold.co/300x200/eeeeee/cccccc?text=No+Image'}" class="palette-img" alt="${p.name}">
       <div class="palette-name">${p.name}</div>
     </div>
   `).join('');
@@ -1226,9 +1213,11 @@ function openPaletteModal(id = null) {
     title.textContent = 'Редактировать палитру';
     editId.value = p.id;
     nameInput.value = p.name;
-    urlInput.value = p.url;
-    tempPaletteImg = p.img;
-    preview.innerHTML = `<img src="${p.img}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(текущее фото)</span>`;
+    urlInput.value = p.url || '';
+    tempPaletteImg = p.img_base64;
+    if (p.img_base64) {
+      preview.innerHTML = `<img src="${p.img_base64}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(текущее фото)</span>`;
+    }
   } else {
     title.textContent = 'Добавить палитру';
     editId.value = '';
@@ -1244,47 +1233,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const file = e.target.files[0];
     if (!file) return;
     
+    // Сжимаем картинку перед отправкой в базу (чтобы не превышать лимит)
     const reader = new FileReader();
     reader.onload = function(ev) {
-      tempPaletteImg = ev.target.result; // base64
-      $('palImgPreview').innerHTML = `<img src="${tempPaletteImg}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(новое фото)</span>`;
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600;
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Сжимаем в JPEG с качеством 0.7
+        tempPaletteImg = canvas.toDataURL('image/jpeg', 0.7);
+        $('palImgPreview').innerHTML = `<img src="${tempPaletteImg}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(новое фото)</span>`;
+      };
+      img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   });
 });
 
-function savePalette() {
+async function savePalette() {
   const id = $('palEditId').value;
   const name = $('palNewName').value;
-  const url = $('palNewUrl').value || '#';
+  const url = $('palNewUrl').value || null;
   
   if (!name) { alert('Введите название палитры'); return; }
-  if (!tempPaletteImg) { alert('Пожалуйста, выберите фото для палитры'); return; }
+  if (!tempPaletteImg && !id) { alert('Пожалуйста, выберите фото для палитры'); return; }
 
   if (id) {
-    const p = palettesData.find(x => String(x.id) === String(id));
-    p.name = name;
-    p.url = url;
-    p.img = tempPaletteImg;
+    // Редактирование
+    const updateData = { name: name, url: url };
+    if (tempPaletteImg) updateData.img_base64 = tempPaletteImg;
+
+    const { error } = await supabaseClient.from('warehouse_palettes').update(updateData).eq('id', id);
+    if (error) { alert('Ошибка: ' + error.message); return; }
     toast('Палитра обновлена');
   } else {
-    palettesData.push({
-      id: Date.now(),
+    // Создание
+    const { error } = await supabaseClient.from('warehouse_palettes').insert([{
       name: name,
       url: url,
-      img: tempPaletteImg
-    });
+      img_base64: tempPaletteImg
+    }]);
+    if (error) { alert('Ошибка: ' + error.message); return; }
     toast('Палитра добавлена');
   }
 
   closeModal('paletteModal');
-  renderPalettes();
+  await loadPalettes();
 }
 
-function deletePalette(id) {
+async function deletePalette(id) {
   if (!confirm('Удалить эту палитру?')) return;
-  palettesData = palettesData.filter(p => p.id !== id);
-  renderPalettes();
+  await supabaseClient.from('warehouse_palettes').delete().eq('id', id);
+  await loadPalettes();
   toast('Палитра удалена');
 }
 
