@@ -86,14 +86,28 @@
   .sidebar-image-container { padding: 16px; text-align: center; display: flex; justify-content: center; align-items: center; flex: 1; }
   .sidebar-image-container img { max-width: 100%; max-height: 150px; border-radius: 12px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
   
-  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;}
 
   .main-content { flex: 1; overflow-y: auto; padding: 40px; width: 100%; }
   .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;}
   .page-title { font-size: 28px; font-weight: 700; margin: 0; }
   .page-subtitle { color: var(--text-muted); margin-top: 8px; font-size: 15px; }
 
-  .mobile-header { display: none; background: var(--surface); padding: 12px 20px; border-bottom: 1px solid var(--border); align-items: center; justify-content: space-between; z-index: 101; }
+  /* Мобильная шапка (сверху) */
+  .mobile-header { 
+    display: none; 
+    background: var(--surface); 
+    padding: 12px 16px; 
+    border-bottom: 1px solid var(--border); 
+    align-items: center; 
+    justify-content: space-between; 
+    z-index: 150;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+  .mobile-header-title { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
 
   /* --- ОБЩИЕ ЭЛЕМЕНТЫ --- */
   .search-input { 
@@ -224,20 +238,53 @@
   }
   #imageViewer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
+  /* --- АДАПТИВ ДЛЯ МОБИЛЬНЫХ --- */
   @media (max-width: 768px) {
     body { flex-direction: column; }
+    
+    /* Показываем верхнюю панель */
     .mobile-header { display: flex; }
-    .sidebar { position: fixed; top: 57px; left: 0; bottom: 0; transform: translateX(-100%); box-shadow: 4px 0 15px rgba(0,0,0,0.1); }
+    
+    /* Основной контент сдвигаем вниз под шапку */
+    .main-content { padding: 16px; padding-top: 80px; }
+    
+    /* Сайдбар теперь выезжает слева */
+    .sidebar { 
+      position: fixed; top: 57px; left: 0; bottom: 0; width: 260px;
+      transform: translateX(-100%); box-shadow: 4px 0 15px rgba(0,0,0,0.2); 
+    }
     .sidebar.open { transform: translateX(0); }
-    .main-content { padding: 20px; }
+    
     .grid-2, .grid-4 { grid-template-columns: 1fr; }
     .sidebar-image-container { display: none; } 
+    
+    /* Таблица соответствий */
+    .match-table th, .match-table td { padding: 8px 4px; font-size: 13px; }
+    .match-table th { font-size: 11px; }
+    .match-inputs input { font-size: 13px; padding: 6px 4px; }
+    
+    /* FAQ */
     .faq-header { flex-direction: column; gap: 8px; }
     .status-badge { align-self: flex-start; }
+    
+    /* Калькулятор - фикс прокрутки */
+    .calc-container { flex-direction: column; gap: 15px; }
+    .calc-form, .calc-list { width: 100%; min-width: 100%; flex: none; }
+    
+    .page-title { font-size: 22px; }
   }
 </style>
 </head>
 <body>
+
+<!-- МОБИЛЬНАЯ ШАПКА -->
+<div class="mobile-header">
+  <button onclick="toggleSidebar()" style="padding:6px; border:none; background:transparent; color:var(--text);">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
+  <div class="mobile-header-title">С заботой ❤️</div>
+  <button onclick="toggleTheme()" class="icon-btn" style="padding:6px; border:none; background:transparent; color:var(--text);">🌙</button>
+</div>
 
 <!-- ЭКРАН ВХОДА -->
 <div id="authScreen" style="display: flex;">
@@ -262,174 +309,160 @@
 </div>
 
 <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
-<div id="appScreen" style="display:none; width:100%; height:100%; flex-direction: column;">
+<div id="appScreen" style="display:none; width:100%; height:100%;">
   
-  <div class="mobile-header">
-    <div style="font-weight:700;">С заботой ❤️</div>
-    <div style="display:flex; gap:8px;">
-      <button onclick="toggleTheme()" class="icon-btn" id="themeBtnMobile">🌙</button>
-      <button onclick="toggleSidebar()" style="padding:6px; border:none; background:transparent;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </button>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      С заботой, от склада ❤️
+      <span id="sidebarUserName">Портал менеджера</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="switchTab('faq', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+        Вопросы (FAQ)
+      </div>
+      <div class="nav-item" onclick="switchTab('ideas', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+        Предложения
+      </div>
+      <div class="nav-item" onclick="switchTab('materials', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+        Материалы
+      </div>
+      <div class="nav-item" onclick="switchTab('matches', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        Соответствия
+      </div>
+      <div class="nav-item" onclick="switchTab('calculator', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 8h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
+        Калькулятор
+      </div>
+      <div class="nav-item" onclick="switchTab('palettes', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        Палитры
+      </div>
+    </div>
+    
+    <div class="sidebar-image-container">
+      <img src="meow.jpg" alt="Милый котик" onerror="this.style.display='none'">
+    </div>
+
+    <div class="sidebar-footer">
+      <button onclick="toggleTheme()" id="themeBtnDesktop" style="width:100%; justify-content:center;">🌙 Сменить тему</button>
+      <button class="danger" style="width:100%" onclick="logout()">Выйти</button>
     </div>
   </div>
 
-  <div style="display:flex; flex:1; overflow:hidden; position:relative;">
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        С заботой, от склада ❤️
-        <span id="sidebarUserName">Портал менеджера</span>
+  <div class="main-content" id="mainContent">
+    
+    <!-- РАЗДЕЛ 1: FAQ -->
+    <div id="tab-faq" class="tab-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Частые вопросы</h1>
+          <div class="page-subtitle">База знаний для менеджеров</div>
+        </div>
+        <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
       </div>
-      <div class="sidebar-nav">
-        <div class="nav-item active" onclick="switchTab('faq', this)">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
-          Вопросы (FAQ)
+      <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="renderFaq()">
+      <div class="card" id="faqList">Загрузка...</div>
+    </div>
+
+    <!-- РАЗДЕЛ 2: ПРЕДЛОЖЕНИЯ -->
+    <div id="tab-ideas" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Предложения</h1>
+          <div class="page-subtitle">Анонимные идеи по улучшению</div>
         </div>
-        <div class="nav-item" onclick="switchTab('ideas', this)">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
-          Предложения
+        <button class="primary" onclick="openIdeaModal()">+ Предложить</button>
+      </div>
+      <div id="ideasList">Загрузка...</div>
+    </div>
+
+    <!-- РАЗДЕЛ 3: МАТЕРИАЛЫ -->
+    <div id="tab-materials" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Материалы</h1>
+          <div class="page-subtitle">Нажмите на название, чтобы скопировать</div>
         </div>
-        <div class="nav-item" onclick="switchTab('materials', this)">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
-          Материалы
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="primary" onclick="addComparisonGroup()">+ Сопоставление</button>
+          <button class="primary" onclick="openMaterialModal()">+ Материал</button>
         </div>
-        <div class="nav-item" onclick="switchTab('matches', this)">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-          Соответствия
+      </div>
+      <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
+      <div id="comparisonsContainer"></div>
+      <h3 style="margin-top:40px;">Все материалы</h3>
+      <div class="grid grid-2" id="materialsList">Загрузка...</div>
+    </div>
+
+    <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
+    <div id="tab-matches" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Соответствия</h1>
+          <div class="page-subtitle">Нажмите, чтобы скопировать</div>
         </div>
-        <div class="nav-item" onclick="switchTab('calculator', this)">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 8h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
-          Калькулятор
+        <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
+      </div>
+      <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию..." oninput="renderMatches()">
+      <div class="card" style="padding:12px;">
+        <table class="match-table">
+          <thead><tr><th>Этот цвет</th><th>Соответствует этому</th><th style="width:30px;"></th></tr></thead>
+          <tbody id="matchTableBody">Загрузка...</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- РАЗДЕЛ 5: КАЛЬКУЛЯТОР -->
+    <div id="tab-calculator" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Калькулятор</h1>
+          <div class="page-subtitle">Кликните на материал в базе, чтобы скопировать</div>
         </div>
-        <div class="nav-item" onclick="switchTab('palettes', this)">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-          Палитры
-        </div>
+        <button class="primary" onclick="openCalcModal()">+ Добавить расход</button>
       </div>
       
-      <div class="sidebar-image-container">
-        <img src="meow.jpg" alt="Милый котик" onerror="this.style.display='none'">
-      </div>
-
-      <div class="sidebar-footer">
-        <button class="danger" style="width:100%" onclick="logout()">Выйти</button>
+      <div class="calc-container">
+        <div class="card calc-form">
+          <h3 style="margin-top:0;">Калькулятор</h3>
+          <div class="form-group"><label>Выберите материал</label><select id="calcMaterial" onchange="updateCalc()"></select></div>
+          <div class="form-group"><label>Площадь (кв. м)</label><input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()"></div>
+          <div class="form-group"><label>Техника нанесения</label><input type="text" id="calcTechName" placeholder="Распыление" oninput="updateCalc()"></div>
+          <div class="form-group"><label>Коэфф. расхода</label><input type="number" id="calcTechCoef" value="1.0" step="0.05" oninput="updateCalc()"></div>
+          <div class="form-group">
+            <label>Количество слоев</label>
+            <select id="calcLayers" onchange="updateCalc()">
+              <option value="1">1 слой</option><option value="2" selected>2 слоя</option><option value="3">3 слоя</option><option value="4">4 слоя</option><option value="5">5 слоев</option><option value="6">6 слоев</option><option value="7">7 слоев</option>
+            </select>
+          </div>
+          <div class="calc-result" id="calcResult" style="display:none;">
+            <h4>Необходимо закупить:</h4><div class="number" id="calcTotalLitres">0</div><div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
+          </div>
+        </div>
+        <div class="card calc-list">
+          <h3 style="margin-top:0;">База расходов</h3>
+          <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">Загрузка...</div>
+        </div>
       </div>
     </div>
 
-    <div class="main-content">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:-20px; position:relative; z-index:10;">
-         <button onclick="toggleTheme()" class="icon-btn" id="themeBtnDesktop" title="Переключить тему">🌙</button>
+    <!-- РАЗДЕЛ 6: ПАЛИТРЫ -->
+    <div id="tab-palettes" class="tab-content" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Палитры</h1>
+          <div class="page-subtitle">Нажмите на фото для увеличения</div>
+        </div>
+        <button class="primary" onclick="openPaletteModal()">+ Добавить</button>
       </div>
-
-      <!-- РАЗДЕЛ 1: FAQ -->
-      <div id="tab-faq" class="tab-content">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Частые вопросы</h1>
-            <div class="page-subtitle">База знаний для менеджеров</div>
-          </div>
-          <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
-        </div>
-        <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="renderFaq()">
-        <div class="card" id="faqList">Загрузка...</div>
-      </div>
-
-      <!-- РАЗДЕЛ 2: ПРЕДЛОЖЕНИЯ -->
-      <div id="tab-ideas" class="tab-content" style="display:none;">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Предложения сотрудников</h1>
-            <div class="page-subtitle">Анонимные идеи по улучшению работы, коммуникаций, условий</div>
-          </div>
-          <button class="primary" onclick="openIdeaModal()">+ Предложить идею</button>
-        </div>
-        <div id="ideasList">Загрузка...</div>
-      </div>
-
-      <!-- РАЗДЕЛ 3: МАТЕРИАЛЫ -->
-      <div id="tab-materials" class="tab-content" style="display:none;">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Материалы и альтернативы</h1>
-            <div class="page-subtitle">Нажмите на название, чтобы скопировать</div>
-          </div>
-          <div style="display:flex; gap:10px;">
-            <button class="primary" onclick="addComparisonGroup()">+ Сопоставление</button>
-            <button class="primary" onclick="openMaterialModal()">+ Материал</button>
-          </div>
-        </div>
-        <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
-        <div id="comparisonsContainer"></div>
-        <h3 style="margin-top:40px;">Все материалы</h3>
-        <div class="grid grid-2" id="materialsList">Загрузка...</div>
-      </div>
-
-      <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
-      <div id="tab-matches" class="tab-content" style="display:none;">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Соответствия</h1>
-            <div class="page-subtitle">Нажмите на текст в поле, чтобы скопировать</div>
-          </div>
-          <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
-        </div>
-        <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию цвета..." oninput="renderMatches()">
-        <div class="card">
-          <table class="match-table">
-            <thead><tr><th>Этот цвет</th><th>Соответствует этому</th><th style="width:50px;"></th></tr></thead>
-            <tbody id="matchTableBody">Загрузка...</tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- РАЗДЕЛ 5: КАЛЬКУЛЯТОР -->
-      <div id="tab-calculator" class="tab-content" style="display:none;">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Расчёт материалов</h1>
-            <div class="page-subtitle">Кликните на материал в базе, чтобы скопировать его норму</div>
-          </div>
-          <button class="primary" onclick="openCalcModal()">+ Добавить расход</button>
-        </div>
-        
-        <div class="calc-container">
-          <div class="card calc-form">
-            <h3 style="margin-top:0;">Калькулятор</h3>
-            <div class="form-group"><label>Выберите материал из базы</label><select id="calcMaterial" onchange="updateCalc()"></select></div>
-            <div class="form-group"><label>Площадь покрытия (кв. м)</label><input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()"></div>
-            <div class="form-group"><label>Техника нанесения (название)</label><input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()"></div>
-            <div class="form-group"><label>Коэффициент расхода техники</label><input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()"></div>
-            <div class="form-group">
-              <label>Количество слоев (от 1 до 7)</label>
-              <select id="calcLayers" onchange="updateCalc()">
-                <option value="1">1 слой</option><option value="2" selected>2 слоя</option><option value="3">3 слоя</option><option value="4">4 слоя</option><option value="5">5 слоев</option><option value="6">6 слоев</option><option value="7">7 слоев</option>
-              </select>
-            </div>
-            <div class="calc-result" id="calcResult" style="display:none;">
-              <h4>Необходимо закупить:</h4><div class="number" id="calcTotalLitres">0</div><div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
-            </div>
-          </div>
-          <div class="card calc-list">
-            <h3 style="margin-top:0;">База расходов (Клик = копировать)</h3>
-            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">Загрузка...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- РАЗДЕЛ 6: ПАЛИТРЫ -->
-      <div id="tab-palettes" class="tab-content" style="display:none;">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Палитры на складе</h1>
-            <div class="page-subtitle">Нажмите на фото для увеличения</div>
-          </div>
-          <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
-        </div>
-        <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
-        <div class="grid grid-4" id="palettesList">Загрузка...</div>
-      </div>
-
+      <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию..." oninput="renderPalettes()">
+      <div class="grid grid-4" id="palettesList">Загрузка...</div>
     </div>
+
   </div>
 </div>
 
@@ -444,7 +477,7 @@
     <button class="modal-close" onclick="closeModal('faqModal')">×</button>
     <h3>Задать новый вопрос</h3>
     <div class="form-group"><label>Вопрос</label><input type="text" id="faqNewQ" placeholder="Введите вопрос..."></div>
-    <div class="form-group" style="margin-top:12px;"><label>Ответ (оставьте пустым, если его еще нет)</label><textarea id="faqNewA" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Введите ответ..."></textarea></div>
+    <div class="form-group" style="margin-top:12px;"><label>Ответ (если есть)</label><textarea id="faqNewA" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Введите ответ..."></textarea></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaq()">Сохранить</button>
   </div>
 </div>
@@ -456,7 +489,7 @@
     <p id="faqQuestionText" style="font-weight:600; margin-bottom:16px;"></p>
     <input type="hidden" id="faqAnswerId">
     <div class="form-group"><label>Ваш ответ</label><textarea id="faqAnswerText" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Напишите ответ..."></textarea></div>
-    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaqAnswer()">Отправить ответ</button>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaqAnswer()">Отправить</button>
   </div>
 </div>
 
@@ -464,10 +497,10 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('ideaModal')">×</button>
     <h3>Предложить идею</h3>
-    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Ваше предложение будет опубликовано анонимно.</p>
-    <div class="form-group"><label>Суть предложения</label><input type="text" id="ideaNewTitle" placeholder="Кратко опишите идею..."></div>
-    <div class="form-group" style="margin-top:12px;"><label>Подробности (необязательно)</label><textarea id="ideaNewDesc" rows="3" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Как это улучшит работу?"></textarea></div>
-    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveIdea()">Отправить идею</button>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Анонимно</p>
+    <div class="form-group"><label>Суть</label><input type="text" id="ideaNewTitle" placeholder="Кратко..."></div>
+    <div class="form-group" style="margin-top:12px;"><label>Подробности</label><textarea id="ideaNewDesc" rows="3" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Как это улучшит работу?"></textarea></div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveIdea()">Отправить</button>
   </div>
 </div>
 
@@ -475,11 +508,11 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('materialModal')">×</button>
     <h3>Добавить материал</h3>
-    <div class="form-group"><label>Название материала</label><input type="text" id="matNewName" placeholder="Например: Краска Интерьерная"></div>
-    <div class="form-group" style="margin-top:12px;"><label>Ценовая категория (1 — доступный, 5 — премиум)</label><input type="range" id="matNewPrice" min="1" max="5" value="3" oninput="document.getElementById('matPriceVal').textContent = this.value"><div style="text-align:right; font-weight:bold;" id="matPriceVal">3</div></div>
-    <div class="form-group" style="margin-top:12px;"><label>Плюсы (через запятую)</label><input type="text" id="matNewPros" placeholder="Быстро сохнет, без запаха"></div>
-    <div class="form-group" style="margin-top:12px;"><label>Минусы (через запятую)</label><input type="text" id="matNewCons" placeholder="Требует грунтовки"></div>
-    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMaterial()">Сохранить материал</button>
+    <div class="form-group"><label>Название</label><input type="text" id="matNewName" placeholder="Например: Краска"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Цена (1-5)</label><input type="range" id="matNewPrice" min="1" max="5" value="3" oninput="document.getElementById('matPriceVal').textContent = this.value"><div style="text-align:right; font-weight:bold;" id="matPriceVal">3</div></div>
+    <div class="form-group" style="margin-top:12px;"><label>Плюсы (через запятую)</label><input type="text" id="matNewPros" placeholder="Быстро сохнет"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Минусы (через запятую)</label><input type="text" id="matNewCons" placeholder="Дорого"></div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMaterial()">Сохранить</button>
   </div>
 </div>
 
@@ -487,17 +520,17 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('matchModal')">×</button>
     <h3>Добавить соответствие</h3>
-    <div class="form-group"><label>Этот цвет (NCS / RAL / Другое)</label><input type="text" id="matchCode" placeholder="Например: NCS S 1500-N"></div>
-    <div class="form-group" style="margin-top:12px;"><label>Соответствует этому (МКА / Замша / Другое)</label><input type="text" id="matchColorName" placeholder="Например: Бежевый МКА"></div>
-    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMatch()">Сохранить связь</button>
+    <div class="form-group"><label>Этот цвет (NCS/RAL)</label><input type="text" id="matchCode" placeholder="Например: NCS S 1500-N"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Соответствует (МКА/Замша)</label><input type="text" id="matchColorName" placeholder="Например: Бежевый"></div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMatch()">Сохранить</button>
   </div>
 </div>
 
 <div class="modal-overlay" id="calcModal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('calcModal')">×</button>
-    <h3>Добавить норму расхода</h3>
-    <div class="form-group"><label>Название материала *</label><input type="text" id="calcNewName" placeholder="Например: Краска Интерьерная"></div>
+    <h3>Добавить норму</h3>
+    <div class="form-group"><label>Название *</label><input type="text" id="calcNewName" placeholder="Например: Краска"></div>
     <div style="background:var(--bg); padding:16px; border-radius:8px; margin-top:16px;">
       <p style="margin-top:0; font-size:13px; font-weight:600; color:var(--text-muted);">Расчет по образцу</p>
       <div style="display:flex; gap:10px;">
@@ -508,22 +541,22 @@
       <div style="font-size:13px; color:var(--primary); font-weight:600; margin-top:8px;" id="calcRateResult">Норма на 1 кв.м: —</div>
     </div>
     <div style="display:flex; gap:10px; margin-top:16px;">
-      <div class="form-group" style="flex:1;"><label>Удельный вес (г/л)</label><input type="text" id="calcNewWeight" placeholder="1.3"></div>
+      <div class="form-group" style="flex:1;"><label>Вес (г/л)</label><input type="text" id="calcNewWeight" placeholder="1.3"></div>
       <div class="form-group" style="flex:1;"><label>Техника</label><input type="text" id="calcNewTech" placeholder="Кисть"></div>
     </div>
-    <div class="form-group" style="margin-top:16px;"><label>Инструмент</label><input type="text" id="calcNewTool" placeholder="Валик 8 мм"></div>
-    <div class="form-group" style="margin-top:16px;"><label>Доп. информация</label><textarea id="calcNewNotes" rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Например: Наносить при t > 15°C"></textarea></div>
-    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveNewRate()">Сохранить норму</button>
+    <div class="form-group" style="margin-top:16px;"><label>Инструмент</label><input type="text" id="calcNewTool" placeholder="Валик"></div>
+    <div class="form-group" style="margin-top:16px;"><label>Доп. инфо</label><textarea id="calcNewNotes" rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Заметка..."></textarea></div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveNewRate()">Сохранить</button>
   </div>
 </div>
 
 <div class="modal-overlay" id="compareModal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('compareModal')">×</button>
-    <h3>Создать сопоставление</h3>
-    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы для сравнения:</p>
+    <h3>Сопоставление</h3>
+    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы:</p>
     <div id="compareCheckboxes" style="display:flex; flex-direction:column; gap:10px; margin-top:16px; max-height:300px; overflow-y:auto;"></div>
-    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveComparisonGroup()">Создать шкалу</button>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveComparisonGroup()">Создать</button>
   </div>
 </div>
 
@@ -532,9 +565,9 @@
     <button class="modal-close" onclick="closeModal('paletteModal')">×</button>
     <h3 id="paletteModalTitle">Добавить палитру</h3>
     <input type="hidden" id="palEditId">
-    <div class="form-group"><label>Название палитры *</label><input type="text" id="palNewName" placeholder="Например: Tikkurila"></div>
-    <div class="form-group" style="margin-top:12px;"><label>Ссылка на сайт (URL)</label><input type="text" id="palNewUrl" placeholder="https://..."></div>
-    <div class="form-group" style="margin-top:12px;"><label>Фото (обложка)</label><input type="file" id="palNewImg" accept="image/*" style="padding:8px;"><div id="palImgPreview" style="margin-top:8px; font-size:13px; color:var(--text-muted);"></div></div>
+    <div class="form-group"><label>Название *</label><input type="text" id="palNewName" placeholder="Например: Tikkurila"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Ссылка (URL)</label><input type="text" id="palNewUrl" placeholder="https://..."></div>
+    <div class="form-group" style="margin-top:12px;"><label>Фото</label><input type="file" id="palNewImg" accept="image/*" style="padding:8px;"><div id="palImgPreview" style="margin-top:8px; font-size:13px; color:var(--text-muted);"></div></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="savePalette()">Сохранить</button>
   </div>
 </div>
@@ -553,7 +586,6 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 });
 
-// ПАРОЛЬ ДЛЯ РЕДАКТИРОВАНИЯ ПАЛИТР И СООТВЕТСТВИЙ
 const SECRET_PASSWORD = '676767';
 
 // ============ УТИЛИТЫ ============
@@ -568,7 +600,6 @@ function toast(msg, isError = false){
   t._t=setTimeout(()=>t.className='toast',3000); 
 }
 
-// Функция проверки пароля
 function checkPassword() {
   const pass = prompt('Для этого действия введите секретный код:');
   if (pass === SECRET_PASSWORD) return true;
@@ -596,17 +627,15 @@ function toggleTheme() {
   document.body.classList.toggle('dark-theme');
   const isDark = document.body.classList.contains('dark-theme');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  const icons = ['🌙', '☀️'];
-  const newIcon = isDark ? icons[1] : icons[0];
-  if ($('themeBtnDesktop')) $('themeBtnDesktop').textContent = newIcon;
-  if ($('themeBtnMobile')) $('themeBtnMobile').textContent = newIcon;
+  const btn = $('themeBtnDesktop');
+  if (btn) btn.textContent = isDark ? '☀️ Светлая тема' : '🌙 Темная тема';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-theme');
-    if ($('themeBtnDesktop')) $('themeBtnDesktop').textContent = '☀️';
-    if ($('themeBtnMobile')) $('themeBtnMobile').textContent = '☀️';
+    const btn = $('themeBtnDesktop');
+    if (btn) btn.textContent = '☀️ Светлая тема';
   }
 });
 
@@ -636,10 +665,7 @@ async function checkAuth() {
     currentUserEmail = session.user.email;
     
     const { data: profile, error } = await supabaseClient
-      .from('profiles')
-      .select('name')
-      .eq('email', currentUserEmail)
-      .single();
+      .from('profiles').select('name').eq('email', currentUserEmail).single();
 
     if (error || !profile) {
       $('authScreen').style.display = 'none';
@@ -661,22 +687,10 @@ async function checkAuth() {
 
 async function saveProfile() {
   const name = $('profileName').value.trim();
-  if (!name) { 
-    $('profileError').textContent = 'Пожалуйста, введите имя';
-    $('profileError').style.display = 'block';
-    return; 
-  }
+  if (!name) { $('profileError').textContent = 'Введите имя'; $('profileError').style.display = 'block'; return; }
 
-  const { error } = await supabaseClient.from('profiles').insert([{ 
-    email: currentUserEmail, 
-    name: name 
-  }]);
-
-  if (error) {
-    $('profileError').textContent = 'Ошибка: ' + error.message;
-    $('profileError').style.display = 'block';
-    return;
-  }
+  const { error } = await supabaseClient.from('profiles').insert([{ email: currentUserEmail, name: name }]);
+  if (error) { $('profileError').textContent = 'Ошибка: ' + error.message; $('profileError').style.display = 'block'; return; }
 
   currentUserName = name;
   $('sidebarUserName').textContent = `Привет, ${currentUserName}!`;
@@ -692,6 +706,7 @@ function switchTab(tabId, el) {
   $(`tab-${tabId}`).style.display = 'block';
   el.classList.add('active');
   if (window.innerWidth <= 768) $('sidebar').classList.remove('open');
+  $('mainContent').scrollTop = 0; 
 }
 
 function toggleSidebar() { $('sidebar').classList.toggle('open'); }
@@ -712,15 +727,14 @@ function checkNewAnswers() {
     if (!viewedAnswers.includes(q.id)) { hasNew = true; viewedAnswers.push(q.id); }
   });
   localStorage.setItem('viewed_answers', JSON.stringify(viewedAnswers));
-  if (hasNew) toast('🔔 На ваш вопрос ответили! Проверьте раздел Вопросы (FAQ)');
+  if (hasNew) toast('🔔 На ваш вопрос ответили!');
 }
 
 // ============ FAQ ============
 async function loadFaq() {
   const { data, error } = await supabaseClient.from('faq').select('*').order('created_at', { ascending: false });
-  if (error) { console.error(error); return; }
-  faqData = data;
-  renderFaq();
+  if (error) return;
+  faqData = data; renderFaq();
 }
 
 function renderFaq() {
@@ -728,91 +742,58 @@ function renderFaq() {
   const list = $('faqList');
   const filtered = faqData.filter(item => item.question.toLowerCase().includes(query) || (item.answer && item.answer.toLowerCase().includes(query)));
 
-  if (filtered.length === 0) {
-    list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`;
-    return;
-  }
+  if (filtered.length === 0) { list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`; return; }
 
   list.innerHTML = filtered.map(item => {
     const hasAnswer = item.answer && item.answer.trim().length > 0;
-    const answerHtml = hasAnswer 
-      ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;">
-           <p>${item.answer}</p>
-           <div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div>
-         </div>` : '';
-    const statusHtml = hasAnswer 
-      ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>`
-      : `<div class="status-badge no-answer" onclick="openAnswerModal(${item.id})">Ожидает ответа</div>`;
+    const answerHtml = hasAnswer ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;"><p>${item.answer}</p><div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div></div>` : '';
+    const statusHtml = hasAnswer ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>` : `<div class="status-badge no-answer" onclick="openAnswerModal(${item.id})">Ожидает ответа</div>`;
 
     return `
       <div class="faq-item">
         <div class="faq-header">
-          <div>
-            <div class="faq-q">${item.question}</div>
-            <div class="faq-author">Спросил: ${item.author_email}</div>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            ${statusHtml}
-            <button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button>
-          </div>
+          <div><div class="faq-q">${item.question}</div><div class="faq-author">Спросил: ${item.author_email}</div></div>
+          <div style="display:flex; gap:8px; align-items:center;">${statusHtml}<button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button></div>
         </div>
         ${answerHtml}
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
 function openFaqModal() { $('faqModal').classList.add('active'); }
 async function saveFaq() {
-  const q = $('faqNewQ').value;
-  const a = $('faqNewA').value;
+  const q = $('faqNewQ').value; const a = $('faqNewA').value;
   if (!q) { alert('Введите вопрос'); return; }
-  
-  const { error } = await supabaseClient.from('faq').insert([{ 
-    question: q, answer: a || null, author_email: currentUserEmail, answer_author: a ? currentUserName : null
-  }]);
-
+  const { error } = await supabaseClient.from('faq').insert([{ question: q, answer: a || null, author_email: currentUserEmail, answer_author: a ? currentUserName : null }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
-  closeModal('faqModal');
-  await loadFaq();
-  toast('Вопрос сохранен');
+  closeModal('faqModal'); await loadFaq(); toast('Вопрос сохранен');
 }
 
 async function deleteFaq(id) {
   if (!confirm('Удалить этот вопрос?')) return;
-  await supabaseClient.from('faq').delete().eq('id', id);
-  await loadFaq();
-  toast('Вопрос удален');
+  await supabaseClient.from('faq').delete().eq('id', id); await loadFaq(); toast('Вопрос удален');
 }
 
 function openAnswerModal(id) {
   const item = faqData.find(x => x.id === id);
   if (!item) return;
   $('faqQuestionText').textContent = item.question;
-  $('faqAnswerId').value = id;
-  $('faqAnswerText').value = '';
-  $('faqAnswerModal').classList.add('active');
+  $('faqAnswerId').value = id; $('faqAnswerText').value = ''; $('faqAnswerModal').classList.add('active');
 }
 
 async function saveFaqAnswer() {
-  const id = parseInt($('faqAnswerId').value);
-  const a = $('faqAnswerText').value;
+  const id = parseInt($('faqAnswerId').value); const a = $('faqAnswerText').value;
   if (!a) { alert('Введите ответ'); return; }
-  
   const { error } = await supabaseClient.from('faq').update({ answer: a, answer_author: currentUserName }).eq('id', id);
-
   if (error) { alert('Ошибка: ' + error.message); return; }
-  closeModal('faqAnswerModal');
-  await loadFaq();
-  toast('Ответ добавлен');
+  closeModal('faqAnswerModal'); await loadFaq(); toast('Ответ добавлен');
 }
 
 // ============ ПРЕДЛОЖЕНИЯ ============
 async function loadIdeas() {
   const { data: ideas, error } = await supabaseClient.from('ideas').select('*, idea_likes(user_email)').order('created_at', { ascending: false });
-  if (error) { console.error(error); return; }
-  ideasData = ideas;
-  renderIdeas();
+  if (error) return;
+  ideasData = ideas; renderIdeas();
 }
 
 function renderIdeas() {
@@ -823,8 +804,7 @@ function renderIdeas() {
     return `
       <div class="card idea-card">
         <div class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id}, ${isLiked})">
-          <div class="like-icon">${isLiked ? '❤️' : '🤍'}</div>
-          <div class="like-count">${likesCount}</div>
+          <div class="like-icon">${isLiked ? '❤️' : '🤍'}</div><div class="like-count">${likesCount}</div>
         </div>
         <div class="idea-content">
           <div class="idea-title">${item.title}</div>
@@ -832,42 +812,35 @@ function renderIdeas() {
           <div class="idea-author">Анонимно</div>
         </div>
         <button class="danger icon-btn" onclick="deleteIdea(${item.id})" title="Удалить">×</button>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
 function openIdeaModal() { $('ideaNewTitle').value = ''; $('ideaNewDesc').value = ''; $('ideaModal').classList.add('active'); }
 async function saveIdea() {
-  const title = $('ideaNewTitle').value;
-  const desc = $('ideaNewDesc').value;
-  if (!title) { alert('Введите суть предложения'); return; }
+  const title = $('ideaNewTitle').value; const desc = $('ideaNewDesc').value;
+  if (!title) { alert('Введите суть'); return; }
   const { error } = await supabaseClient.from('ideas').insert([{ title: title, description: desc }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
   closeModal('ideaModal'); await loadIdeas(); toast('Идея отправлена');
 }
 
 async function toggleLike(ideaId, isLiked) {
-  if (isLiked) {
-    await supabaseClient.from('idea_likes').delete().eq('idea_id', ideaId).eq('user_email', currentUserEmail);
-  } else {
-    await supabaseClient.from('idea_likes').insert([{ idea_id: ideaId, user_email: currentUserEmail }]);
-  }
+  if (isLiked) await supabaseClient.from('idea_likes').delete().eq('idea_id', ideaId).eq('user_email', currentUserEmail);
+  else await supabaseClient.from('idea_likes').insert([{ idea_id: ideaId, user_email: currentUserEmail }]);
   await loadIdeas();
 }
 
 async function deleteIdea(id) {
-  if (!confirm('Удалить это предложение?')) return;
-  await supabaseClient.from('ideas').delete().eq('id', id);
-  await loadIdeas();
+  if (!confirm('Удалить идею?')) return;
+  await supabaseClient.from('ideas').delete().eq('id', id); await loadIdeas();
 }
 
 // ============ МАТЕРИАЛЫ ============
 async function loadMaterials() {
   const { data, error } = await supabaseClient.from('materials').select('*').order('name');
-  if (error) { console.error(error); return; }
-  materialsData = data;
-  renderMaterials();
+  if (error) return;
+  materialsData = data; renderMaterials();
 }
 
 function renderMaterials() {
@@ -877,77 +850,55 @@ function renderMaterials() {
     const selected = materialsData.filter(m => group.materialIds.includes(m.id));
     if (selected.length === 0) return '';
     let markersHtml = '';
-    selected.forEach((m, index) => {
+    selected.forEach((m) => {
       const leftPos = ((m.price_level - 1) / 4) * 100;
       markersHtml += `
         <div class="material-marker" style="left: ${leftPos}%;">
-          <div class="material-label">${m.name}</div>
-          <div class="material-line" style="height: ${20 + (5 - m.price_level) * 5}px;"></div>
+          <div class="material-label">${m.name}</div><div class="material-line" style="height: ${20 + (5 - m.price_level) * 5}px;"></div>
           <div class="material-dot" style="background: ${m.price_level >= 4 ? 'var(--danger)' : (m.price_level >= 3 ? 'var(--warning)' : 'var(--success)')}"></div>
         </div>`;
     });
     return `
       <div class="comparison-block">
-        <button class="danger icon-btn comparison-remove" onclick="deleteComparisonGroup(${group.id})" title="Удалить шкалу">×</button>
+        <button class="danger icon-btn comparison-remove" onclick="deleteComparisonGroup(${group.id})" title="Удалить">×</button>
         <h4 style="margin-top:0; margin-bottom:20px;">Шкала сравнения #${group.id}</h4>
-        <div class="materials-scale-container">
-          <div class="scale-labels"><span>Доступный</span><span>Средний</span><span>Дорогой</span></div>
-          ${markersHtml}
-        </div>
-        <div class="grid grid-2">
-          ${selected.map(m => `
+        <div class="materials-scale-container"><div class="scale-labels"><span>Доступный</span><span>Средний</span><span>Дорогой</span></div>${markersHtml}</div>
+        <div class="grid grid-2">${selected.map(m => `
             <div class="card" style="box-shadow:none; border-color:#eee;">
               <div class="material-title copy-target" onclick="copyToClipboard('${m.name}')">${m.name}</div>
-              <div style="margin-top:12px;">
-                <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Цена (${m.price_level}/5)</div>
-                <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
-                   <div style="height:100%; width:${m.price_level*20}%; background:${m.price_level >= 4 ? 'var(--danger)' : (m.price_level >= 3 ? 'var(--warning)' : 'var(--success)')}; border-radius:4px;"></div>
-                </div>
+              <div style="margin-top:12px;"><div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Цена (${m.price_level}/5)</div>
+                <div style="width:100%; height:6px; background:var(--border); border-radius:4px;"><div style="height:100%; width:${m.price_level*20}%; background:${m.price_level >= 4 ? 'var(--danger)' : (m.price_level >= 3 ? 'var(--warning)' : 'var(--success)')}; border-radius:4px;"></div></div>
               </div>
-              <div class="material-pros-cons">
-                <div class="pros" style="flex:1;"><strong>Плюсы:</strong><br>${m.pros.map(p => `+ ${p}`).join('<br>')}</div>
-                <div class="cons" style="flex:1;"><strong>Минусы:</strong><br>${m.cons.map(c => `- ${c}`).join('<br>')}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
+              <div class="material-pros-cons"><div class="pros" style="flex:1;"><strong>Плюсы:</strong><br>${m.pros.map(p => `+ ${p}`).join('<br>')}</div>
+              <div class="cons" style="flex:1;"><strong>Минусы:</strong><br>${m.cons.map(c => `- ${c}`).join('<br>')}</div></div>
+            </div>`).join('')}</div>
       </div>`;
   }).join('');
 
   const grid = $('materialsList');
   const filtered = materialsData.filter(m => m.name.toLowerCase().includes(query));
   if (filtered.length === 0) { grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</div>`; return; }
-
   grid.innerHTML = filtered.map(m => {
-    let barColor = 'var(--success)';
-    if (m.price_level >= 4) barColor = 'var(--danger)';
-    else if (m.price_level >= 3) barColor = 'var(--warning)';
+    let barColor = 'var(--success)'; if (m.price_level >= 4) barColor = 'var(--danger)'; else if (m.price_level >= 3) barColor = 'var(--warning)';
     return `
       <div class="card material-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div class="material-title copy-target" onclick="copyToClipboard('${m.name}')" title="Скопировать название">${m.name} 📋</div>
+          <div class="material-title copy-target" onclick="copyToClipboard('${m.name}')" title="Скопировать">${m.name} 📋</div>
           <button class="danger icon-btn" onclick="deleteMaterial(${m.id})" title="Удалить">×</button>
         </div>
-        <div>
-          <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Ценовая категория (${m.price_level}/5):</div>
-          <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
-             <div style="height:100%; width:${m.price_level*20}%; background:${barColor}; border-radius:4px;"></div>
-          </div>
+        <div><div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Ценовая категория (${m.price_level}/5):</div>
+          <div style="width:100%; height:6px; background:var(--border); border-radius:4px;"><div style="height:100%; width:${m.price_level*20}%; background:${barColor}; border-radius:4px;"></div></div>
         </div>
-        <div class="material-pros-cons">
-          <div class="pros" style="flex:1;"><strong>Плюсы:</strong><br>${m.pros.map(p => `+ ${p}`).join('<br>')}</div>
-          <div class="cons" style="flex:1;"><strong>Минусы:</strong><br>${m.cons.map(c => `- ${c}`).join('<br>')}</div>
-        </div>
+        <div class="material-pros-cons"><div class="pros" style="flex:1;"><strong>Плюсы:</strong><br>${m.pros.map(p => `+ ${p}`).join('<br>')}</div>
+        <div class="cons" style="flex:1;"><strong>Минусы:</strong><br>${m.cons.map(c => `- ${c}`).join('<br>')}</div></div>
       </div>`;
   }).join('');
 }
 
 function openMaterialModal() { $('materialModal').classList.add('active'); }
 async function saveMaterial() {
-  const name = $('matNewName').value;
-  const price = parseInt($('matNewPrice').value);
-  const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const cons = $('matNewCons').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const name = $('matNewName').value; const price = parseInt($('matNewPrice').value);
+  const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean); const cons = $('matNewCons').value.split(',').map(s=>s.trim()).filter(Boolean);
   if (!name) { alert('Введите название'); return; }
   const { error } = await supabaseClient.from('materials').insert([{ name: name, price_level: price, pros: pros, cons: cons }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
@@ -997,7 +948,7 @@ function renderMatches() {
   const filtered = matchData.filter(m => m.color_from.toLowerCase().includes(query) || m.color_to.toLowerCase().includes(query));
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 40px; color: var(--text-muted);">
-      Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="prefillMatch('${query}')">Создать соответствие</button></td></tr>`;
+      Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="prefillMatch('${query}')">Создать</button></td></tr>`;
     return;
   }
   tbody.innerHTML = filtered.map(m => `
@@ -1015,7 +966,7 @@ async function addMatchRow() {
 }
 
 async function updateMatch(id, field, value) { 
-  if (!checkPassword()) { renderMatches(); return; } // Если пароль неверный, сбрасываем ввод
+  if (!checkPassword()) { renderMatches(); return; } 
   await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id); 
   const m = matchData.find(x => x.id === id); 
   if (m) m[field] = value; 
@@ -1041,7 +992,7 @@ async function saveMatch() {
 // ============ КАЛЬКУЛЯТОР ============
 async function loadRates() {
   const { data, error } = await supabaseClient.from('consumption_rates').select('*').order('name');
-  if (error) { console.error(error); return; }
+  if (error) return;
   ratesData = data; renderCalculator();
 }
 
@@ -1050,7 +1001,7 @@ function renderCalculator() {
   select.innerHTML = '<option value="">-- Выберите материал --</option>' + ratesData.map(r => `<option value="${r.rate_per_sqm}">${r.name} (${r.rate_per_sqm * 1000} мл/м²)</option>`).join('');
   const list = $('consumptionList');
   list.innerHTML = ratesData.map(r => `
-    <div class="calc-item-card" onclick="copyToClipboard('${r.name} - Норма: ${r.rate_per_sqm * 1000} мл/м²')" title="Скопировать данные для клиента">
+    <div class="calc-item-card" onclick="copyToClipboard('${r.name} - Норма: ${r.rate_per_sqm * 1000} мл/м²')" title="Скопировать данные">
       <span class="copy-hint">Копировать 📋</span>
       <div style="font-weight:600; font-size:15px;">${r.name}</div>
       <div style="color:var(--primary); font-weight:700; margin:4px 0;">${r.rate_per_sqm * 1000} мл / м²</div>
@@ -1112,7 +1063,7 @@ async function saveNewRate() {
 // ============ ПАЛИТРЫ (ЗАЩИЩЕНО ПАРОЛЕМ) ============
 async function loadPalettes() {
   const { data, error } = await supabaseClient.from('warehouse_palettes').select('*').order('name');
-  if (error) { console.error(error); return; }
+  if (error) return;
   palettesData = data; renderPalettes();
 }
 
@@ -1143,7 +1094,6 @@ function renderPalettes() {
 }
 
 function openPaletteModal(id = null) {
-  // При редактировании просим пароль
   if (id && !checkPassword()) return;
 
   const title = $('paletteModalTitle'); const editId = $('palEditId');
@@ -1186,7 +1136,6 @@ async function savePalette() {
   const id = $('palEditId').value; const name = $('palNewName').value;
   const url = $('palNewUrl').value || null;
   
-  // При сохранении изменений снова проверяем
   if (id && !checkPassword()) return;
 
   if (!name) { alert('Введите название палитры'); return; }
