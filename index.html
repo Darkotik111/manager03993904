@@ -116,7 +116,7 @@
   .like-count { font-size: 14px; font-weight: 700; }
   .idea-content { flex: 1; }
   .idea-title { font-weight: 600; font-size: 16px; margin-bottom: 4px;}
-  .idea-author { font-size: 12px; color: var(--text-muted); }
+  .idea-author { font-size: 12px; color: var(--text-muted); font-style: italic;}
 
   /* --- МАТЕРИАЛЫ --- */
   .comparison-block { margin-bottom: 32px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: var(--surface); position: relative;}
@@ -280,7 +280,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Предложения сотрудников</h1>
-            <div class="page-subtitle">Идеи по улучшению работы склада</div>
+            <div class="page-subtitle">Анонимные идеи по улучшению работы склада</div>
           </div>
           <button class="primary" onclick="openIdeaModal()">+ Предложить идею</button>
         </div>
@@ -448,6 +448,7 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('ideaModal')">×</button>
     <h3>Предложить идею</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Ваше предложение будет опубликовано анонимно.</p>
     <div class="form-group">
       <label>Суть предложения</label>
       <input type="text" id="ideaNewTitle" placeholder="Кратко опишите идею...">
@@ -677,8 +678,8 @@ async function initApp() {
   ];
 
   ideasData = [
-    { id: 1, title: "Купить новую тележку для склада", desc: "Старая скрипит и медленно едет.", author: "manager1@sklad.ru", likes: ["admin@sklad.ru"] },
-    { id: 2, title: "Сделать больше света над стеллажом 4", desc: "", author: "manager3@sklad.ru", likes: [] }
+    { id: 1, title: "Купить новую тележку для склада", desc: "Старая скрипит и медленно едет.", likes: ["admin@sklad.ru"] },
+    { id: 2, title: "Сделать больше света над стеллажом 4", desc: "", likes: [] }
   ];
 
   materialsData = [
@@ -806,7 +807,7 @@ function saveFaqAnswer() {
   toast('Ответ добавлен');
 }
 
-// --- ПРЕДЛОЖЕНИЯ ---
+// --- ПРЕДЛОЖЕНИЯ (АНОНИМНО) ---
 function renderIdeas() {
   const list = $('ideasList');
   
@@ -821,7 +822,7 @@ function renderIdeas() {
         <div class="idea-content">
           <div class="idea-title">${item.title}</div>
           ${item.desc ? `<div style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">${item.desc}</div>` : ''}
-          <div class="idea-author">Предложил: ${item.author}</div>
+          <div class="idea-author">Анонимно</div>
         </div>
         <button class="danger icon-btn" onclick="deleteIdea(${item.id})" title="Удалить">×</button>
       </div>
@@ -844,7 +845,6 @@ function saveIdea() {
     id: Date.now(),
     title: title,
     desc: desc,
-    author: currentUserEmail,
     likes: []
   });
   closeModal('ideaModal');
