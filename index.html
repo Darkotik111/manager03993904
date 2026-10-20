@@ -23,19 +23,55 @@
     --danger-light: #F8D7DA;
     --warning: #FFC107;
     
+    --skeleton-bg: #e9ecef;
+    --skeleton-shine: #f8f9fa;
+
     --font: 'Inter', -apple-system, sans-serif;
     --radius: 12px;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
   }
 
+  /* Темная тема */
+  body.dark-theme {
+    --bg: #121212;
+    --surface: #1E1E1E;
+    --text: #E0E0E0;
+    --text-muted: #A0A0A0;
+    --border: #333333;
+    --primary: #4C8DFF;
+    --primary-hover: #6AA0FF;
+    --primary-light: #1A2A44;
+    --success-light: #1A3A2A;
+    --danger-light: #3A1A1A;
+    --shadow: 0 4px 12px rgba(0,0,0,0.3);
+    
+    --skeleton-bg: #2a2a2a;
+    --skeleton-shine: #3a3a3a;
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { 
     margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); 
-    height: 100vh; display: flex; overflow: hidden;
+    height: 100vh; display: flex; overflow: hidden; transition: background 0.3s, color 0.3s;
   }
 
-  /* --- АВТОРИЗАЦИЯ --- */
-  #authScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  /* --- АНИМАЦИЯ СКЕЛЕТОНА --- */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+  .skeleton {
+    background: var(--skeleton-bg);
+    background-image: linear-gradient(90deg, var(--skeleton-bg) 0px, var(--skeleton-shine) 40px, var(--skeleton-bg) 80px);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear forwards;
+    border-radius: 6px;
+  }
+  .skeleton-text { height: 16px; margin-bottom: 8px; width: 100%; }
+  .skeleton-title { height: 24px; margin-bottom: 12px; width: 60%; }
+
+  /* --- АВТОРИЗАЦИЯ И ПРОФИЛЬ --- */
+  #authScreen, #profileScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
   .auth-box { background: var(--surface); border: 1px solid var(--border); padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow); }
   .auth-box h2 { font-size: 24px; margin-top: 0; margin-bottom: 24px; font-weight: 600; }
   .auth-box input { width: 100%; padding: 12px 16px; margin-bottom: 16px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: var(--font); font-size: 15px; }
@@ -49,16 +85,16 @@
     padding: 10px 16px; border-radius: 8px; font-size: 14px; font-family: var(--font); 
     cursor: pointer; transition: 0.2s; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   }
-  button:hover { background: #F1F3F5; }
+  button:hover { background: var(--bg); }
   button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
   button.primary:hover { background: var(--primary-hover); }
-  button.danger { color: var(--danger); border-color: #F5C2C7; background: transparent; }
+  button.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
   button.danger:hover { background: var(--danger-light); }
   button.sm { padding: 6px 12px; font-size: 13px; }
   button.icon-btn { padding: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; line-height: 1; }
 
   /* --- LAYOUT --- */
-  .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s; z-index: 100;}
+  .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s, background 0.3s; z-index: 100;}
   .sidebar-header { padding: 24px; font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
   .sidebar-header span { font-size: 13px; color: var(--text-muted); font-weight: 400; }
   
@@ -83,7 +119,7 @@
   /* --- ОБЩИЕ ЭЛЕМЕНТЫ --- */
   .search-input { 
     width: 100%; padding: 14px 20px; border-radius: 10px; border: 1px solid var(--border); 
-    font-size: 16px; font-family: var(--font); background: var(--surface); margin-bottom: 24px;
+    font-size: 16px; font-family: var(--font); background: var(--surface); margin-bottom: 24px; color: var(--text);
   }
   .search-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
   
@@ -110,9 +146,10 @@
   /* --- ПРЕДЛОЖЕНИЯ --- */
   .idea-card { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start;}
   .like-btn { display: flex; flex-direction: column; align-items: center; background: var(--bg); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; min-width: 60px;}
-  .like-btn:hover { background: #eef1f4; }
+  .like-btn:hover { background: var(--primary-light); }
   .like-btn.liked { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
-  .like-icon { font-size: 20px; margin-bottom: 4px; }
+  .like-icon { font-size: 20px; margin-bottom: 4px; transition: transform 0.2s; }
+  .like-btn:active .like-icon { transform: scale(1.5); }
   .like-count { font-size: 14px; font-weight: 700; }
   .idea-content { flex: 1; }
   .idea-title { font-weight: 600; font-size: 16px; margin-bottom: 4px;}
@@ -128,6 +165,10 @@
   .material-line { height: 30px; width: 2px; background: var(--border); }
   .material-label { font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; margin-bottom: 4px; background: var(--surface); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   .material-card { display: flex; flex-direction: column; gap: 16px; }
+  
+  .copy-target { cursor: pointer; transition: 0.2s; padding: 2px 4px; border-radius: 4px; display: inline-block;}
+  .copy-target:hover { background: var(--primary-light); color: var(--primary); }
+
   .material-title { font-weight: 600; font-size: 16px; }
   .material-pros-cons { display: flex; gap: 16px; font-size: 14px; margin-top: 8px; }
   .pros { color: var(--success); }
@@ -138,7 +179,7 @@
   .match-table th, .match-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top;}
   .match-table th { font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
   .match-inputs { display: flex; flex-direction: column; gap: 4px; }
-  .match-inputs input { padding: 4px 8px; border: 1px solid transparent; background: transparent; border-radius: 4px; font-family: var(--font); font-size: 14px; width: 100%; }
+  .match-inputs input { padding: 4px 8px; border: 1px solid transparent; background: transparent; border-radius: 4px; font-family: var(--font); font-size: 14px; width: 100%; color: var(--text); cursor: pointer;}
   .match-inputs input:hover, .match-inputs input:focus { border-color: var(--border); background: var(--bg); outline: none; }
 
   /* --- КАЛЬКУЛЯТОР --- */
@@ -147,27 +188,65 @@
   .calc-list { flex: 1; min-width: 300px; }
   .form-group { display: flex; flex-direction: column; gap: 6px; }
   .form-group label { font-size: 14px; font-weight: 500; color: var(--text-muted); }
-  .form-group input, .form-group select { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 15px; font-family: var(--font); }
+  .form-group input, .form-group select { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 15px; font-family: var(--font); background: var(--surface); color: var(--text); }
   .calc-result { background: var(--primary-light); padding: 20px; border-radius: 8px; margin-top: 16px; }
   .calc-result h4 { margin: 0 0 8px 0; color: var(--primary); }
   .calc-result .number { font-size: 32px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
 
+  .calc-item-card { border:1px solid var(--border); padding:12px; border-radius:8px; transition: 0.2s; cursor: pointer; }
+  .calc-item-card:hover { border-color: var(--primary); background: var(--primary-light); }
+  .calc-item-card:hover .copy-hint { opacity: 1; }
+  .copy-hint { font-size: 11px; color: var(--primary); opacity: 0; transition: 0.2s; float: right;}
+
   /* --- ПАЛИТРЫ --- */
-  .palette-card { text-align: center; cursor: pointer; transition: 0.2s; position: relative;}
+  .palette-card { 
+    text-align: center; cursor: pointer; transition: 0.2s; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    min-height: 220px;
+  }
   .palette-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-  .palette-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--bg); }
-  .palette-name { font-weight: 600; font-size: 16px; }
+  
+  /* Фото палитры подстраивается под пропорции */
+  .palette-img { 
+    width: 100%; 
+    height: auto; 
+    max-height: 300px; /* Чтобы не была гигантской */
+    object-fit: contain; /* Сохраняет пропорции */
+    border-radius: 8px; 
+    margin-bottom: 12px; 
+    background: var(--bg); 
+    cursor: zoom-in;
+  }
+  
+  .palette-name { font-weight: 600; font-size: 16px; margin-top: auto; }
   .palette-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
-  .palette-actions button { background: rgba(255,255,255,0.9); box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 28px; height: 28px; font-size: 14px; border-radius: 50%;}
+  .palette-actions button { background: rgba(255,255,255,0.9); color: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 28px; height: 28px; font-size: 14px; border-radius: 50%;}
+
+  /* Кнопка добавления прямо в сетке */
+  .add-palette-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px dashed var(--border); border-radius: 8px; cursor: pointer;
+    color: var(--text-muted); transition: 0.2s; min-height: 220px;
+  }
+  .add-palette-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .add-palette-btn svg { width: 48px; height: 48px; fill: currentColor; margin-bottom: 12px; }
 
   /* --- МОДАЛКИ --- */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
   .modal-overlay.active { display: flex; }
-  .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;}
+  .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; color: var(--text);}
   .modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
   
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: 0.3s; z-index: 2000; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: 0.3s; z-index: 2000; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);}
   .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* --- ПРОСМОТР ФОТО (ZOOM) --- */
+  #imageViewer {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000;
+    display: none; justify-content: center; align-items: center; padding: 40px;
+    cursor: zoom-out;
+  }
+  #imageViewer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
   @media (max-width: 768px) {
     body { flex-direction: column; }
@@ -184,9 +263,10 @@
 </head>
 <body>
 
-<div id="authScreen">
+<!-- ЭКРАН ВХОДА -->
+<div id="authScreen" style="display: flex;">
   <div class="auth-box">
-    <h2>Портал менеджера</h2>
+    <h2>Вход в систему</h2>
     <div class="auth-error" id="authError"></div>
     <input type="email" id="authEmail" placeholder="Рабочий Email">
     <input type="password" id="authPass" placeholder="Пароль">
@@ -194,20 +274,35 @@
   </div>
 </div>
 
+<!-- ЭКРАН ВВОДА ИМЕНИ -->
+<div id="profileScreen">
+  <div class="auth-box">
+    <h2>Как вас зовут?</h2>
+    <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Это имя будут видеть коллеги в вопросах и ответах.</p>
+    <div class="auth-error" id="profileError"></div>
+    <input type="text" id="profileName" placeholder="Например: Анна">
+    <button class="primary" onclick="saveProfile()">Продолжить</button>
+  </div>
+</div>
+
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
 <div id="appScreen" style="display:none; width:100%; height:100%; flex-direction: column;">
   
   <div class="mobile-header">
     <div style="font-weight:700;">С заботой ❤️</div>
-    <button onclick="toggleSidebar()" style="padding:6px; border:none; background:transparent;">
-      <svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-    </button>
+    <div style="display:flex; gap:8px;">
+      <button onclick="toggleTheme()" class="icon-btn" id="themeBtnMobile">🌙</button>
+      <button onclick="toggleSidebar()" style="padding:6px; border:none; background:transparent;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+    </div>
   </div>
 
   <div style="display:flex; flex:1; overflow:hidden; position:relative;">
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         С заботой, от склада ❤️
-        <span>Портал менеджера</span>
+        <span id="sidebarUserName">Портал менеджера</span>
       </div>
       <div class="sidebar-nav">
         <div class="nav-item active" onclick="switchTab('faq', this)">
@@ -246,6 +341,10 @@
     </div>
 
     <div class="main-content">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:-20px; position:relative; z-index:10;">
+         <button onclick="toggleTheme()" class="icon-btn" id="themeBtnDesktop" title="Переключить тему">🌙</button>
+      </div>
+
       <!-- РАЗДЕЛ 1: FAQ -->
       <div id="tab-faq" class="tab-content">
         <div class="page-header">
@@ -256,7 +355,11 @@
           <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
         </div>
         <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="renderFaq()">
-        <div class="card" id="faqList">Загрузка...</div>
+        <div class="card" id="faqList">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text" style="width: 80%;"></div>
+        </div>
       </div>
 
       <!-- РАЗДЕЛ 2: ПРЕДЛОЖЕНИЯ -->
@@ -268,7 +371,12 @@
           </div>
           <button class="primary" onclick="openIdeaModal()">+ Предложить идею</button>
         </div>
-        <div id="ideasList">Загрузка...</div>
+        <div id="ideasList">
+          <div class="card" style="display:flex; gap:16px; margin-bottom:16px;">
+            <div class="skeleton" style="width:60px; height:60px; border-radius:8px;"></div>
+            <div style="flex:1;"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div></div>
+          </div>
+        </div>
       </div>
 
       <!-- РАЗДЕЛ 3: МАТЕРИАЛЫ -->
@@ -276,7 +384,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Материалы и альтернативы</h1>
-            <div class="page-subtitle">Визуальное сравнение характеристик и стоимости</div>
+            <div class="page-subtitle">Нажмите на название, чтобы скопировать</div>
           </div>
           <div style="display:flex; gap:10px;">
             <button class="primary" onclick="addComparisonGroup()">+ Сопоставление</button>
@@ -286,7 +394,9 @@
         <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
         <div id="comparisonsContainer"></div>
         <h3 style="margin-top:40px;">Все материалы</h3>
-        <div class="grid grid-2" id="materialsList">Загрузка...</div>
+        <div class="grid grid-2" id="materialsList">
+          <div class="card"><div class="skeleton skeleton-title"></div><div class="skeleton" style="height:40px; margin:12px 0;"></div></div>
+        </div>
       </div>
 
       <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
@@ -294,21 +404,17 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Соответствия</h1>
-            <div class="page-subtitle">Соответствия цветов между палитрами</div>
+            <div class="page-subtitle">Нажмите на текст в поле, чтобы скопировать</div>
           </div>
           <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
         </div>
         <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию цвета..." oninput="renderMatches()">
         <div class="card">
           <table class="match-table">
-            <thead>
-              <tr>
-                <th>Этот цвет</th>
-                <th>Соответствует этому</th>
-                <th style="width:50px;"></th>
-              </tr>
-            </thead>
-            <tbody id="matchTableBody">Загрузка...</tbody>
+            <thead><tr><th>Этот цвет</th><th>Соответствует этому</th><th style="width:50px;"></th></tr></thead>
+            <tbody id="matchTableBody">
+              <tr><td><div class="skeleton skeleton-text"></div></td><td><div class="skeleton skeleton-text"></div></td><td></td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -318,7 +424,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Расчёт материалов</h1>
-            <div class="page-subtitle">Умный расчет с учетом техники и слоев</div>
+            <div class="page-subtitle">Кликните на материал в базе, чтобы скопировать его норму</div>
           </div>
           <button class="primary" onclick="openCalcModal()">+ Добавить расход</button>
         </div>
@@ -326,45 +432,25 @@
         <div class="calc-container">
           <div class="card calc-form">
             <h3 style="margin-top:0;">Калькулятор</h3>
-            <div class="form-group">
-              <label>Выберите материал из базы</label>
-              <select id="calcMaterial" onchange="updateCalc()"></select>
-            </div>
-            <div class="form-group">
-              <label>Площадь покрытия (кв. м)</label>
-              <input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()">
-            </div>
-            <div class="form-group">
-              <label>Техника нанесения (название)</label>
-              <input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()">
-            </div>
-            <div class="form-group">
-              <label>Коэффициент расхода техники</label>
-              <input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()">
-              <div style="font-size:12px; color:var(--text-muted);">Стандарт = 1.0. Краскопульт = 1.15. Кельма = 0.9</div>
-            </div>
+            <div class="form-group"><label>Выберите материал из базы</label><select id="calcMaterial" onchange="updateCalc()"></select></div>
+            <div class="form-group"><label>Площадь покрытия (кв. м)</label><input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()"></div>
+            <div class="form-group"><label>Техника нанесения (название)</label><input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()"></div>
+            <div class="form-group"><label>Коэффициент расхода техники</label><input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()"></div>
             <div class="form-group">
               <label>Количество слоев (от 1 до 7)</label>
               <select id="calcLayers" onchange="updateCalc()">
-                <option value="1">1 слой</option>
-                <option value="2" selected>2 слоя</option>
-                <option value="3">3 слоя</option>
-                <option value="4">4 слоя</option>
-                <option value="5">5 слоев</option>
-                <option value="6">6 слоев</option>
-                <option value="7">7 слоев</option>
+                <option value="1">1 слой</option><option value="2" selected>2 слоя</option><option value="3">3 слоя</option><option value="4">4 слоя</option><option value="5">5 слоев</option><option value="6">6 слоев</option><option value="7">7 слоев</option>
               </select>
             </div>
             <div class="calc-result" id="calcResult" style="display:none;">
-              <h4>Необходимо закупить:</h4>
-              <div class="number" id="calcTotalLitres">0</div>
-              <div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
+              <h4>Необходимо закупить:</h4><div class="number" id="calcTotalLitres">0</div><div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
             </div>
           </div>
-
           <div class="card calc-list">
-            <h3 style="margin-top:0;">База расходов</h3>
-            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">Загрузка...</div>
+            <h3 style="margin-top:0;">База расходов (Клик = копировать)</h3>
+            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
+              <div class="calc-item-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -374,16 +460,24 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Палитры на складе</h1>
-            <div class="page-subtitle">Управление палитрами производителей</div>
+            <div class="page-subtitle">Нажмите на фото для увеличения</div>
           </div>
           <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
         </div>
         <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
-        <div class="grid grid-4" id="palettesList">Загрузка...</div>
+        
+        <div class="grid grid-4" id="palettesList">
+          <div class="card" style="padding:16px;"><div class="skeleton" style="width:100%; height:160px; margin-bottom:12px; border-radius:8px;"></div></div>
+        </div>
       </div>
 
     </div>
   </div>
+</div>
+
+<!-- ПРОСМОТР ФОТО -->
+<div id="imageViewer" onclick="this.style.display='none'">
+  <img id="viewerImg" src="" alt="Просмотр">
 </div>
 
 <!-- МОДАЛКИ -->
@@ -391,14 +485,8 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('faqModal')">×</button>
     <h3>Задать новый вопрос</h3>
-    <div class="form-group">
-      <label>Вопрос</label>
-      <input type="text" id="faqNewQ" placeholder="Введите вопрос...">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Ответ (оставьте пустым, если его еще нет)</label>
-      <textarea id="faqNewA" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Введите ответ..."></textarea>
-    </div>
+    <div class="form-group"><label>Вопрос</label><input type="text" id="faqNewQ" placeholder="Введите вопрос..."></div>
+    <div class="form-group" style="margin-top:12px;"><label>Ответ (оставьте пустым, если его еще нет)</label><textarea id="faqNewA" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Введите ответ..."></textarea></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaq()">Сохранить</button>
   </div>
 </div>
@@ -409,10 +497,7 @@
     <h3>Ответить на вопрос</h3>
     <p id="faqQuestionText" style="font-weight:600; margin-bottom:16px;"></p>
     <input type="hidden" id="faqAnswerId">
-    <div class="form-group">
-      <label>Ваш ответ</label>
-      <textarea id="faqAnswerText" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Напишите ответ..."></textarea>
-    </div>
+    <div class="form-group"><label>Ваш ответ</label><textarea id="faqAnswerText" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Напишите ответ..."></textarea></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaqAnswer()">Отправить ответ</button>
   </div>
 </div>
@@ -422,14 +507,8 @@
     <button class="modal-close" onclick="closeModal('ideaModal')">×</button>
     <h3>Предложить идею</h3>
     <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Ваше предложение будет опубликовано анонимно.</p>
-    <div class="form-group">
-      <label>Суть предложения</label>
-      <input type="text" id="ideaNewTitle" placeholder="Кратко опишите идею...">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Подробности (необязательно)</label>
-      <textarea id="ideaNewDesc" rows="3" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Как это улучшит работу?"></textarea>
-    </div>
+    <div class="form-group"><label>Суть предложения</label><input type="text" id="ideaNewTitle" placeholder="Кратко опишите идею..."></div>
+    <div class="form-group" style="margin-top:12px;"><label>Подробности (необязательно)</label><textarea id="ideaNewDesc" rows="3" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Как это улучшит работу?"></textarea></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveIdea()">Отправить идею</button>
   </div>
 </div>
@@ -438,23 +517,10 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('materialModal')">×</button>
     <h3>Добавить материал</h3>
-    <div class="form-group">
-      <label>Название материала</label>
-      <input type="text" id="matNewName" placeholder="Например: Краска Интерьерная">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Ценовая категория (1 — доступный, 5 — премиум)</label>
-      <input type="range" id="matNewPrice" min="1" max="5" value="3" oninput="document.getElementById('matPriceVal').textContent = this.value">
-      <div style="text-align:right; font-weight:bold;" id="matPriceVal">3</div>
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Плюсы (через запятую)</label>
-      <input type="text" id="matNewPros" placeholder="Быстро сохнет, без запаха">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Минусы (через запятую)</label>
-      <input type="text" id="matNewCons" placeholder="Требует грунтовки">
-    </div>
+    <div class="form-group"><label>Название материала</label><input type="text" id="matNewName" placeholder="Например: Краска Интерьерная"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Ценовая категория (1 — доступный, 5 — премиум)</label><input type="range" id="matNewPrice" min="1" max="5" value="3" oninput="document.getElementById('matPriceVal').textContent = this.value"><div style="text-align:right; font-weight:bold;" id="matPriceVal">3</div></div>
+    <div class="form-group" style="margin-top:12px;"><label>Плюсы (через запятую)</label><input type="text" id="matNewPros" placeholder="Быстро сохнет, без запаха"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Минусы (через запятую)</label><input type="text" id="matNewCons" placeholder="Требует грунтовки"></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMaterial()">Сохранить материал</button>
   </div>
 </div>
@@ -463,14 +529,8 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('matchModal')">×</button>
     <h3>Добавить соответствие</h3>
-    <div class="form-group">
-      <label>Этот цвет (NCS / RAL / Другое)</label>
-      <input type="text" id="matchCode" placeholder="Например: NCS S 1500-N">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Соответствует этому (МКА / Замша / Другое)</label>
-      <input type="text" id="matchColorName" placeholder="Например: Бежевый МКА">
-    </div>
+    <div class="form-group"><label>Этот цвет (NCS / RAL / Другое)</label><input type="text" id="matchCode" placeholder="Например: NCS S 1500-N"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Соответствует этому (МКА / Замша / Другое)</label><input type="text" id="matchColorName" placeholder="Например: Бежевый МКА"></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveMatch()">Сохранить связь</button>
   </div>
 </div>
@@ -479,48 +539,22 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('calcModal')">×</button>
     <h3>Добавить норму расхода</h3>
-    <div class="form-group">
-      <label>Название материала *</label>
-      <input type="text" id="calcNewName" placeholder="Например: Краска Интерьерная">
-    </div>
+    <div class="form-group"><label>Название материала *</label><input type="text" id="calcNewName" placeholder="Например: Краска Интерьерная"></div>
     <div style="background:var(--bg); padding:16px; border-radius:8px; margin-top:16px;">
       <p style="margin-top:0; font-size:13px; font-weight:600; color:var(--text-muted);">Расчет по образцу</p>
       <div style="display:flex; gap:10px;">
-        <div class="form-group" style="flex:1;">
-          <label>Ширина (см)</label>
-          <input type="number" id="calcSampleW" placeholder="20" oninput="calcNewRate()">
-        </div>
-        <div class="form-group" style="flex:1;">
-          <label>Высота (см)</label>
-          <input type="number" id="calcSampleH" placeholder="30" oninput="calcNewRate()">
-        </div>
-        <div class="form-group" style="flex:1;">
-          <label>Расход (мл)</label>
-          <input type="number" id="calcSampleMl" placeholder="100" oninput="calcNewRate()">
-        </div>
+        <div class="form-group" style="flex:1;"><label>Ширина (см)</label><input type="number" id="calcSampleW" placeholder="20" oninput="calcNewRate()"></div>
+        <div class="form-group" style="flex:1;"><label>Высота (см)</label><input type="number" id="calcSampleH" placeholder="30" oninput="calcNewRate()"></div>
+        <div class="form-group" style="flex:1;"><label>Расход (мл)</label><input type="number" id="calcSampleMl" placeholder="100" oninput="calcNewRate()"></div>
       </div>
-      <div style="font-size:13px; color:var(--primary); font-weight:600; margin-top:8px;" id="calcRateResult">
-        Норма на 1 кв.м: —
-      </div>
+      <div style="font-size:13px; color:var(--primary); font-weight:600; margin-top:8px;" id="calcRateResult">Норма на 1 кв.м: —</div>
     </div>
     <div style="display:flex; gap:10px; margin-top:16px;">
-      <div class="form-group" style="flex:1;">
-        <label>Удельный вес (г/л) — необяз.</label>
-        <input type="text" id="calcNewWeight" placeholder="1.3">
-      </div>
-      <div class="form-group" style="flex:1;">
-        <label>Техника нанесения — необяз.</label>
-        <input type="text" id="calcNewTech" placeholder="Например: Кисть">
-      </div>
+      <div class="form-group" style="flex:1;"><label>Удельный вес (г/л)</label><input type="text" id="calcNewWeight" placeholder="1.3"></div>
+      <div class="form-group" style="flex:1;"><label>Техника</label><input type="text" id="calcNewTech" placeholder="Кисть"></div>
     </div>
-    <div class="form-group" style="margin-top:16px;">
-      <label>Инструмент — необяз.</label>
-      <input type="text" id="calcNewTool" placeholder="Например: Валик 8 мм">
-    </div>
-    <div class="form-group" style="margin-top:16px;">
-      <label>Дополнительная информация — необяз.</label>
-      <textarea id="calcNewNotes" rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Например: Наносить при t > 15°C"></textarea>
-    </div>
+    <div class="form-group" style="margin-top:16px;"><label>Инструмент</label><input type="text" id="calcNewTool" placeholder="Валик 8 мм"></div>
+    <div class="form-group" style="margin-top:16px;"><label>Доп. информация</label><textarea id="calcNewNotes" rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font); background:var(--bg); color:var(--text);" placeholder="Например: Наносить при t > 15°C"></textarea></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveNewRate()">Сохранить норму</button>
   </div>
 </div>
@@ -529,7 +563,7 @@
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('compareModal')">×</button>
     <h3>Создать сопоставление</h3>
-    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы для сравнения на одной шкале:</p>
+    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы для сравнения:</p>
     <div id="compareCheckboxes" style="display:flex; flex-direction:column; gap:10px; margin-top:16px; max-height:300px; overflow-y:auto;"></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveComparisonGroup()">Создать шкалу</button>
   </div>
@@ -540,19 +574,9 @@
     <button class="modal-close" onclick="closeModal('paletteModal')">×</button>
     <h3 id="paletteModalTitle">Добавить палитру</h3>
     <input type="hidden" id="palEditId">
-    <div class="form-group">
-      <label>Название палитры *</label>
-      <input type="text" id="palNewName" placeholder="Например: Tikkurila">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Ссылка на сайт (URL)</label>
-      <input type="text" id="palNewUrl" placeholder="https://...">
-    </div>
-    <div class="form-group" style="margin-top:12px;">
-      <label>Фото (обложка)</label>
-      <input type="file" id="palNewImg" accept="image/*" style="padding:8px;">
-      <div id="palImgPreview" style="margin-top:8px; font-size:13px; color:var(--text-muted);"></div>
-    </div>
+    <div class="form-group"><label>Название палитры *</label><input type="text" id="palNewName" placeholder="Например: Tikkurila"></div>
+    <div class="form-group" style="margin-top:12px;"><label>Ссылка на сайт (URL)</label><input type="text" id="palNewUrl" placeholder="https://..."></div>
+    <div class="form-group" style="margin-top:12px;"><label>Фото (обложка)</label><input type="file" id="palNewImg" accept="image/*" style="padding:8px;"><div id="palImgPreview" style="margin-top:8px; font-size:13px; color:var(--text-muted);"></div></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="savePalette()">Сохранить</button>
   </div>
 </div>
@@ -571,12 +595,55 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============ УТИЛИТЫ ============
 const $=id=>document.getElementById(id);
-function toast(msg){ const t=$('toast'); t.textContent=msg; t.className='toast show';
-  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3000); }
+function toast(msg, isError = false){ 
+  const t=$('toast'); 
+  t.innerHTML = (isError ? '⚠️ ' : '✅ ') + msg; 
+  t.style.background = isError ? 'var(--danger)' : 'var(--text)';
+  t.style.color = isError ? '#fff' : 'var(--surface)';
+  t.className='toast show';
+  clearTimeout(t._t); 
+  t._t=setTimeout(()=>t.className='toast',3000); 
+}
 
+function copyToClipboard(text) {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    toast('Скопировано: ' + text);
+  }).catch(err => {
+    console.error('Ошибка копирования: ', err);
+  });
+}
+
+// Открытие фото на весь экран
+function viewImage(src) {
+  if (!src) return;
+  $('viewerImg').src = src;
+  $('imageViewer').style.display = 'flex';
+}
+
+// ============ ТЕМА ============
+function toggleTheme() {
+  document.body.classList.toggle('dark-theme');
+  const isDark = document.body.classList.contains('dark-theme');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  const icons = ['🌙', '☀️'];
+  const newIcon = isDark ? icons[1] : icons[0];
+  if ($('themeBtnDesktop')) $('themeBtnDesktop').textContent = newIcon;
+  if ($('themeBtnMobile')) $('themeBtnMobile').textContent = newIcon;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-theme');
+    if ($('themeBtnDesktop')) $('themeBtnDesktop').textContent = '☀️';
+    if ($('themeBtnMobile')) $('themeBtnMobile').textContent = '☀️';
+  }
+});
+
+// ============ АВТОРИЗАЦИЯ И ПРОФИЛЬ ============
 let currentUserEmail = '';
+let currentUserName = '';
 
-// ============ АВТОРИЗАЦИЯ ============
 async function login() {
   const email = $('authEmail').value;
   const pass = $('authPass').value;
@@ -587,7 +654,7 @@ async function login() {
     $('authError').style.display = 'block';
   } else { 
     currentUserEmail = data.user.email;
-    checkAuth(); 
+    await checkAuth(); 
   }
 }
 
@@ -597,45 +664,85 @@ async function checkAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     currentUserEmail = session.user.email;
-    $('authScreen').style.display = 'none';
-    $('appScreen').style.display = 'flex';
-    initApp(); 
+    
+    const { data: profile, error } = await supabaseClient
+      .from('profiles')
+      .select('name')
+      .eq('email', currentUserEmail)
+      .single();
+
+    if (error || !profile) {
+      $('authScreen').style.display = 'none';
+      $('profileScreen').style.display = 'flex';
+    } else {
+      currentUserName = profile.name;
+      $('sidebarUserName').textContent = `Привет, ${currentUserName}!`;
+      $('authScreen').style.display = 'none';
+      $('profileScreen').style.display = 'none';
+      $('appScreen').style.display = 'flex';
+      initApp(); 
+    }
   } else {
     $('authScreen').style.display = 'flex';
+    $('profileScreen').style.display = 'none';
     $('appScreen').style.display = 'none';
   }
+}
+
+async function saveProfile() {
+  const name = $('profileName').value.trim();
+  if (!name) { 
+    $('profileError').textContent = 'Пожалуйста, введите имя';
+    $('profileError').style.display = 'block';
+    return; 
+  }
+
+  const { error } = await supabaseClient.from('profiles').insert([{ 
+    email: currentUserEmail, 
+    name: name 
+  }]);
+
+  if (error) {
+    $('profileError').textContent = 'Ошибка: ' + error.message;
+    $('profileError').style.display = 'block';
+    return;
+  }
+
+  currentUserName = name;
+  $('sidebarUserName').textContent = `Привет, ${currentUserName}!`;
+  $('profileScreen').style.display = 'none';
+  $('appScreen').style.display = 'flex';
+  initApp();
 }
 
 // ============ НАВИГАЦИЯ ============
 function switchTab(tabId, el) {
   document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  
   $(`tab-${tabId}`).style.display = 'block';
   el.classList.add('active');
-  
   if (window.innerWidth <= 768) $('sidebar').classList.remove('open');
 }
 
 function toggleSidebar() { $('sidebar').classList.toggle('open'); }
 
-// ============ ИНИЦИАЛИЗАЦИЯ И ЗАГРУЗКА ДАННЫХ ============
-let faqData = [];
-let ideasData = [];
-let materialsData = [];
-let matchData = [];
-let ratesData = [];
-let palettesData = [];
-let comparisonGroups = []; // Локальная группировка для шкал (пока в памяти)
-let tempPaletteImg = null;
+// ============ ИНИЦИАЛИЗАЦИЯ ============
+let faqData = [], ideasData = [], materialsData = [], matchData = [], ratesData = [], palettesData = [], comparisonGroups = [], tempPaletteImg = null;
 
 async function initApp() {
-  await loadFaq();
-  await loadIdeas();
-  await loadMaterials();
-  await loadMatches();
-  await loadRates();
-  await loadPalettes();
+  await Promise.all([ loadFaq(), loadIdeas(), loadMaterials(), loadMatches(), loadRates(), loadPalettes() ]);
+  checkNewAnswers(); 
+}
+
+function checkNewAnswers() {
+  const myAnsweredQuestions = faqData.filter(q => q.author_email === currentUserEmail && q.answer && q.answer.trim().length > 0);
+  let viewedAnswers = JSON.parse(localStorage.getItem('viewed_answers') || '[]');
+  let hasNew = false;
+  myAnsweredQuestions.forEach(q => {
+    if (!viewedAnswers.includes(q.id)) { hasNew = true; viewedAnswers.push(q.id); }
+  });
+  localStorage.setItem('viewed_answers', JSON.stringify(viewedAnswers));
+  if (hasNew) toast('🔔 На ваш вопрос ответили! Проверьте раздел Вопросы (FAQ)');
 }
 
 // ============ FAQ ============
@@ -649,10 +756,7 @@ async function loadFaq() {
 function renderFaq() {
   const query = $('faqSearch').value.toLowerCase();
   const list = $('faqList');
-  
-  const filtered = faqData.filter(item => 
-    item.question.toLowerCase().includes(query) || (item.answer && item.answer.toLowerCase().includes(query))
-  );
+  const filtered = faqData.filter(item => item.question.toLowerCase().includes(query) || (item.answer && item.answer.toLowerCase().includes(query)));
 
   if (filtered.length === 0) {
     list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`;
@@ -661,14 +765,11 @@ function renderFaq() {
 
   list.innerHTML = filtered.map(item => {
     const hasAnswer = item.answer && item.answer.trim().length > 0;
-    
     const answerHtml = hasAnswer 
       ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;">
            <p>${item.answer}</p>
            <div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div>
-         </div>` 
-      : '';
-      
+         </div>` : '';
     const statusHtml = hasAnswer 
       ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>`
       : `<div class="status-badge no-answer" onclick="openAnswerModal(${item.id})">Ожидает ответа</div>`;
@@ -698,14 +799,10 @@ async function saveFaq() {
   if (!q) { alert('Введите вопрос'); return; }
   
   const { error } = await supabaseClient.from('faq').insert([{ 
-    question: q, 
-    answer: a || null, 
-    author_email: currentUserEmail,
-    answer_author: a ? currentUserEmail : null 
+    question: q, answer: a || null, author_email: currentUserEmail, answer_author: a ? currentUserName : null
   }]);
 
   if (error) { alert('Ошибка: ' + error.message); return; }
-
   closeModal('faqModal');
   await loadFaq();
   toast('Вопрос сохранен');
@@ -732,13 +829,9 @@ async function saveFaqAnswer() {
   const a = $('faqAnswerText').value;
   if (!a) { alert('Введите ответ'); return; }
   
-  const { error } = await supabaseClient.from('faq').update({ 
-    answer: a, 
-    answer_author: currentUserEmail 
-  }).eq('id', id);
+  const { error } = await supabaseClient.from('faq').update({ answer: a, answer_author: currentUserName }).eq('id', id);
 
   if (error) { alert('Ошибка: ' + error.message); return; }
-  
   closeModal('faqAnswerModal');
   await loadFaq();
   toast('Ответ добавлен');
@@ -754,11 +847,9 @@ async function loadIdeas() {
 
 function renderIdeas() {
   const list = $('ideasList');
-  
   list.innerHTML = ideasData.map(item => {
     const isLiked = item.idea_likes.some(l => l.user_email === currentUserEmail);
     const likesCount = item.idea_likes.length;
-
     return `
       <div class="card idea-card">
         <div class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id}, ${isLiked})">
@@ -776,27 +867,14 @@ function renderIdeas() {
   }).join('');
 }
 
-function openIdeaModal() {
-  $('ideaNewTitle').value = '';
-  $('ideaNewDesc').value = '';
-  $('ideaModal').classList.add('active');
-}
-
+function openIdeaModal() { $('ideaNewTitle').value = ''; $('ideaNewDesc').value = ''; $('ideaModal').classList.add('active'); }
 async function saveIdea() {
   const title = $('ideaNewTitle').value;
   const desc = $('ideaNewDesc').value;
   if (!title) { alert('Введите суть предложения'); return; }
-
-  const { error } = await supabaseClient.from('ideas').insert([{ 
-    title: title, 
-    description: desc 
-  }]);
-
+  const { error } = await supabaseClient.from('ideas').insert([{ title: title, description: desc }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
-
-  closeModal('ideaModal');
-  await loadIdeas();
-  toast('Идея отправлена');
+  closeModal('ideaModal'); await loadIdeas(); toast('Идея отправлена');
 }
 
 async function toggleLike(ideaId, isLiked) {
@@ -824,12 +902,10 @@ async function loadMaterials() {
 
 function renderMaterials() {
   const query = $('materialSearch').value.toLowerCase();
-  
   const compContainer = $('comparisonsContainer');
   compContainer.innerHTML = comparisonGroups.map(group => {
     const selected = materialsData.filter(m => group.materialIds.includes(m.id));
     if (selected.length === 0) return '';
-
     let markersHtml = '';
     selected.forEach((m, index) => {
       const leftPos = ((m.price_level - 1) / 4) * 100;
@@ -838,27 +914,20 @@ function renderMaterials() {
           <div class="material-label">${m.name}</div>
           <div class="material-line" style="height: ${20 + (5 - m.price_level) * 5}px;"></div>
           <div class="material-dot" style="background: ${m.price_level >= 4 ? 'var(--danger)' : (m.price_level >= 3 ? 'var(--warning)' : 'var(--success)')}"></div>
-        </div>
-      `;
+        </div>`;
     });
-
     return `
       <div class="comparison-block">
         <button class="danger icon-btn comparison-remove" onclick="deleteComparisonGroup(${group.id})" title="Удалить шкалу">×</button>
         <h4 style="margin-top:0; margin-bottom:20px;">Шкала сравнения #${group.id}</h4>
         <div class="materials-scale-container">
-          <div class="scale-labels">
-            <span>Доступный</span>
-            <span>Средний</span>
-            <span>Дорогой</span>
-          </div>
+          <div class="scale-labels"><span>Доступный</span><span>Средний</span><span>Дорогой</span></div>
           ${markersHtml}
         </div>
-        
         <div class="grid grid-2">
           ${selected.map(m => `
             <div class="card" style="box-shadow:none; border-color:#eee;">
-              <div class="material-title">${m.name}</div>
+              <div class="material-title copy-target" onclick="copyToClipboard('${m.name}')">${m.name}</div>
               <div style="margin-top:12px;">
                 <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Цена (${m.price_level}/5)</div>
                 <div style="width:100%; height:6px; background:var(--border); border-radius:4px;">
@@ -866,39 +935,27 @@ function renderMaterials() {
                 </div>
               </div>
               <div class="material-pros-cons">
-                <div class="pros" style="flex:1;">
-                  <strong>Плюсы:</strong><br>
-                  ${m.pros.map(p => `+ ${p}`).join('<br>')}
-                </div>
-                <div class="cons" style="flex:1;">
-                  <strong>Минусы:</strong><br>
-                  ${m.cons.map(c => `- ${c}`).join('<br>')}
-                </div>
+                <div class="pros" style="flex:1;"><strong>Плюсы:</strong><br>${m.pros.map(p => `+ ${p}`).join('<br>')}</div>
+                <div class="cons" style="flex:1;"><strong>Минусы:</strong><br>${m.cons.map(c => `- ${c}`).join('<br>')}</div>
               </div>
             </div>
           `).join('')}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   const grid = $('materialsList');
   const filtered = materialsData.filter(m => m.name.toLowerCase().includes(query));
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</div>`;
-    return;
-  }
+  if (filtered.length === 0) { grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</div>`; return; }
 
   grid.innerHTML = filtered.map(m => {
     let barColor = 'var(--success)';
     if (m.price_level >= 4) barColor = 'var(--danger)';
     else if (m.price_level >= 3) barColor = 'var(--warning)';
-
     return `
       <div class="card material-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div class="material-title">${m.name}</div>
+          <div class="material-title copy-target" onclick="copyToClipboard('${m.name}')" title="Скопировать название">${m.name} 📋</div>
           <button class="danger icon-btn" onclick="deleteMaterial(${m.id})" title="Удалить">×</button>
         </div>
         <div>
@@ -908,17 +965,10 @@ function renderMaterials() {
           </div>
         </div>
         <div class="material-pros-cons">
-          <div class="pros" style="flex:1;">
-            <strong>Плюсы:</strong><br>
-            ${m.pros.map(p => `+ ${p}`).join('<br>')}
-          </div>
-          <div class="cons" style="flex:1;">
-            <strong>Минусы:</strong><br>
-            ${m.cons.map(c => `- ${c}`).join('<br>')}
-          </div>
+          <div class="pros" style="flex:1;"><strong>Плюсы:</strong><br>${m.pros.map(p => `+ ${p}`).join('<br>')}</div>
+          <div class="cons" style="flex:1;"><strong>Минусы:</strong><br>${m.cons.map(c => `- ${c}`).join('<br>')}</div>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -928,32 +978,17 @@ async function saveMaterial() {
   const price = parseInt($('matNewPrice').value);
   const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean);
   const cons = $('matNewCons').value.split(',').map(s=>s.trim()).filter(Boolean);
-  
   if (!name) { alert('Введите название'); return; }
-
-  const { error } = await supabaseClient.from('materials').insert([{ 
-    name: name, 
-    price_level: price, 
-    pros: pros, 
-    cons: cons 
-  }]);
-
+  const { error } = await supabaseClient.from('materials').insert([{ name: name, price_level: price, pros: pros, cons: cons }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
-
-  closeModal('materialModal');
-  await loadMaterials();
-  toast('Материал добавлен');
+  closeModal('materialModal'); await loadMaterials(); toast('Материал добавлен');
 }
 
 async function deleteMaterial(id) {
   if (!confirm('Удалить материал?')) return;
   await supabaseClient.from('materials').delete().eq('id', id);
-  
-  comparisonGroups.forEach(g => {
-    g.materialIds = g.materialIds.filter(mId => mId !== id);
-  });
+  comparisonGroups.forEach(g => { g.materialIds = g.materialIds.filter(mId => mId !== id); });
   comparisonGroups = comparisonGroups.filter(g => g.materialIds.length > 0);
-  
   await loadMaterials();
 }
 
@@ -961,176 +996,107 @@ function addComparisonGroup() {
   const container = $('compareCheckboxes');
   container.innerHTML = materialsData.map(m => `
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-      <input type="checkbox" value="${m.id}" class="compare-checkbox">
-      ${m.name} (Категория ${m.price_level})
-    </label>
-  `).join('');
+      <input type="checkbox" value="${m.id}" class="compare-checkbox"> ${m.name} (Категория ${m.price_level})
+    </label>`).join('');
   $('compareModal').classList.add('active');
 }
 
 function saveComparisonGroup() {
   const checkboxes = document.querySelectorAll('.compare-checkbox:checked');
   const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
-  
-  if (selectedIds.length < 2) {
-    alert('Выберите хотя бы 2 материала для сравнения');
-    return;
-  }
-
+  if (selectedIds.length < 2) { alert('Выберите хотя бы 2 материала'); return; }
   comparisonGroups.push({ id: Date.now(), materialIds: selectedIds });
-  closeModal('compareModal');
-  renderMaterials();
-  toast('Шкала сравнения создана');
+  closeModal('compareModal'); renderMaterials(); toast('Шкала сравнения создана');
 }
 
 function deleteComparisonGroup(id) {
   if (!confirm('Удалить эту шкалу сравнения?')) return;
-  comparisonGroups = comparisonGroups.filter(g => g.id !== id);
-  renderMaterials();
+  comparisonGroups = comparisonGroups.filter(g => g.id !== id); renderMaterials();
 }
 
 // ============ СООТВЕТСТВИЯ ============
 async function loadMatches() {
   const { data, error } = await supabaseClient.from('color_matches').select('*').order('created_at');
   if (error) { console.error(error); return; }
-  matchData = data;
-  renderMatches();
+  matchData = data; renderMatches();
 }
 
 function renderMatches() {
   const query = $('matchSearch').value.toLowerCase();
   const tbody = $('matchTableBody');
-  
-  const filtered = matchData.filter(m => 
-    m.color_from.toLowerCase().includes(query) || m.color_to.toLowerCase().includes(query)
-  );
-
+  const filtered = matchData.filter(m => m.color_from.toLowerCase().includes(query) || m.color_to.toLowerCase().includes(query));
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 40px; color: var(--text-muted);">
-      Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="prefillMatch('${query}')">Создать соответствие</button>
-    </td></tr>`;
+      Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="prefillMatch('${query}')">Создать соответствие</button></td></tr>`;
     return;
   }
-
   tbody.innerHTML = filtered.map(m => `
     <tr>
-      <td>
-        <div class="match-inputs">
-          <input type="text" value="${m.color_from}" onchange="updateMatch(${m.id}, 'color_from', this.value)" placeholder="NCS / RAL">
-        </div>
-      </td>
-      <td>
-        <div class="match-inputs">
-          <input type="text" value="${m.color_to}" onchange="updateMatch(${m.id}, 'color_to', this.value)" placeholder="МКА / Замша">
-        </div>
-      </td>
-      <td>
-        <button class="danger icon-btn" onclick="deleteMatch(${m.id})" title="Удалить">×</button>
-      </td>
-    </tr>
-  `).join('');
+      <td><div class="match-inputs"><input type="text" value="${m.color_from}" onchange="updateMatch(${m.id}, 'color_from', this.value)" placeholder="NCS / RAL" onclick="copyToClipboard(this.value)" title="Клик для копирования"></div></td>
+      <td><div class="match-inputs"><input type="text" value="${m.color_to}" onchange="updateMatch(${m.id}, 'color_to', this.value)" placeholder="МКА / Замша" onclick="copyToClipboard(this.value)" title="Клик для копирования"></div></td>
+      <td><button class="danger icon-btn" onclick="deleteMatch(${m.id})" title="Удалить">×</button></td>
+    </tr>`).join('');
 }
 
-async function addMatchRow() {
-  await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "" }]);
-  await loadMatches();
-}
-
-async function updateMatch(id, field, value) {
-  await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id);
-  // Обновляем локально, чтобы не перезагружать всю таблицу
-  const m = matchData.find(x => x.id === id);
-  if (m) m[field] = value;
-}
-
-async function deleteMatch(id) {
-  await supabaseClient.from('color_matches').delete().eq('id', id);
-  await loadMatches();
-}
-
-function prefillMatch(text) {
-  $('matchCode').value = text;
-  $('matchModal').classList.add('active');
-}
-
+async function addMatchRow() { await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "" }]); await loadMatches(); }
+async function updateMatch(id, field, value) { await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id); const m = matchData.find(x => x.id === id); if (m) m[field] = value; }
+async function deleteMatch(id) { await supabaseClient.from('color_matches').delete().eq('id', id); await loadMatches(); }
+function prefillMatch(text) { $('matchCode').value = text; $('matchModal').classList.add('active'); }
 async function saveMatch() {
-  const code = $('matchCode').value;
-  const color = $('matchColorName').value;
+  const code = $('matchCode').value; const color = $('matchColorName').value;
   if (!code || !color) { alert('Заполните поля'); return; }
-  
-  const { error } = await supabaseClient.from('color_matches').insert([{ 
-    color_from: code, 
-    color_to: color 
-  }]);
-
+  const { error } = await supabaseClient.from('color_matches').insert([{ color_from: code, color_to: color }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
-
-  closeModal('matchModal');
-  await loadMatches();
-  toast('Соответствие добавлено');
+  closeModal('matchModal'); await loadMatches(); toast('Соответствие добавлено');
 }
 
 // ============ КАЛЬКУЛЯТОР ============
 async function loadRates() {
   const { data, error } = await supabaseClient.from('consumption_rates').select('*').order('name');
   if (error) { console.error(error); return; }
-  ratesData = data;
-  renderCalculator();
+  ratesData = data; renderCalculator();
 }
 
 function renderCalculator() {
   const select = $('calcMaterial');
-  select.innerHTML = '<option value="">-- Выберите материал --</option>' + 
-    ratesData.map(r => `<option value="${r.rate_per_sqm}">${r.name} (${r.rate_per_sqm * 1000} мл/м²)</option>`).join('');
-
+  select.innerHTML = '<option value="">-- Выберите материал --</option>' + ratesData.map(r => `<option value="${r.rate_per_sqm}">${r.name} (${r.rate_per_sqm * 1000} мл/м²)</option>`).join('');
   const list = $('consumptionList');
   list.innerHTML = ratesData.map(r => `
-    <div style="border:1px solid var(--border); padding:12px; border-radius:8px;">
+    <div class="calc-item-card" onclick="copyToClipboard('${r.name} - Норма: ${r.rate_per_sqm * 1000} мл/м²')" title="Скопировать данные для клиента">
+      <span class="copy-hint">Копировать 📋</span>
       <div style="font-weight:600; font-size:15px;">${r.name}</div>
       <div style="color:var(--primary); font-weight:700; margin:4px 0;">${r.rate_per_sqm * 1000} мл / м²</div>
       ${r.weight ? `<div style="font-size:13px; color:var(--text-muted);">Вес: ${r.weight}</div>` : ''}
       ${r.technique ? `<div style="font-size:13px; color:var(--text-muted);">Техника: ${r.technique}</div>` : ''}
       ${r.notes ? `<div style="font-size:13px; color:var(--text-muted); font-style:italic; margin-top:4px;">"${r.notes}"</div>` : ''}
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function updateCalc() {
-  const baseConsumption = parseFloat($('calcMaterial').value); // л/м²
+  const baseConsumption = parseFloat($('calcMaterial').value); 
   const area = parseFloat($('calcArea').value) || 0;
   const techName = $('calcTechName').value || 'Стандарт';
   const techCoef = parseFloat($('calcTechCoef').value) || 1.0;
   const layers = parseFloat($('calcLayers').value);
-
   if (area > 0 && baseConsumption > 0) {
     const rawTotal = area * baseConsumption * techCoef * layers;
-    const total = rawTotal * 1.10; // +10% запас
-    
+    const total = rawTotal * 1.10; 
     $('calcTotalLitres').textContent = total.toFixed(2);
     $('calcInfoText').innerHTML = `Расход: ${baseConsumption} л/м² × ${area} м² × ${layers} сл. × ${techCoef} (${techName}) + 10% запас`;
     $('calcResult').style.display = 'block';
-  } else {
-    $('calcResult').style.display = 'none';
-  }
+  } else { $('calcResult').style.display = 'none'; }
 }
 
 function openCalcModal() {
-  $('calcNewName').value = '';
-  $('calcSampleW').value = '20';
-  $('calcSampleH').value = '30';
-  $('calcSampleMl').value = '100';
-  $('calcNewWeight').value = '';
-  $('calcNewTech').value = '';
-  $('calcNewNotes').value = '';
-  $('calcRateResult').textContent = 'Норма на 1 кв.м: —';
-  $('calcModal').classList.add('active');
+  $('calcNewName').value = ''; $('calcSampleW').value = '20'; $('calcSampleH').value = '30'; $('calcSampleMl').value = '100';
+  $('calcNewWeight').value = ''; $('calcNewTech').value = ''; $('calcNewNotes').value = '';
+  $('calcRateResult').textContent = 'Норма на 1 кв.м: —'; $('calcModal').classList.add('active');
 }
 
 function calcNewRate() {
   const w = parseFloat($('calcSampleW').value) / 100;
   const h = parseFloat($('calcSampleH').value) / 100;
   const ml = parseFloat($('calcSampleMl').value);
-
   if (w > 0 && h > 0 && ml > 0) {
     const areaSample = w * h;
     const rateMl = ml / areaSample;
@@ -1146,107 +1112,76 @@ function calcNewRate() {
 async function saveNewRate() {
   const name = $('calcNewName').value;
   const rate = parseFloat($('calcRateResult').dataset.rate);
-  
   if (!name || isNaN(rate)) { alert('Введите название и корректные данные образца'); return; }
-  
   const { error } = await supabaseClient.from('consumption_rates').insert([{
-    name: name,
-    rate_per_sqm: rate,
-    weight: $('calcNewWeight').value || null,
-    technique: $('calcNewTech').value || null,
-    tool: $('calcNewTool').value || null,
-    notes: $('calcNewNotes').value || null
+    name: name, rate_per_sqm: rate, weight: $('calcNewWeight').value || null,
+    technique: $('calcNewTech').value || null, tool: $('calcNewTool').value || null, notes: $('calcNewNotes').value || null
   }]);
-
   if (error) { alert('Ошибка: ' + error.message); return; }
-
-  closeModal('calcModal');
-  await loadRates();
-  toast('Норма сохранена');
+  closeModal('calcModal'); await loadRates(); toast('Норма сохранена');
 }
 
 // ============ ПАЛИТРЫ (С ФОТО) ============
 async function loadPalettes() {
   const { data, error } = await supabaseClient.from('warehouse_palettes').select('*').order('name');
   if (error) { console.error(error); return; }
-  palettesData = data;
-  renderPalettes();
+  palettesData = data; renderPalettes();
 }
 
 function renderPalettes() {
   const query = $('paletteSearch').value.toLowerCase();
   const grid = $('palettesList');
-  
   const filtered = palettesData.filter(p => p.name.toLowerCase().includes(query));
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</div>`;
-    return;
-  }
-
-  grid.innerHTML = filtered.map(p => `
-    <div class="card palette-card" onclick="window.open('${p.url}', '_blank')">
-      <div class="palette-actions" onclick="event.stopPropagation()">
+  
+  let html = filtered.map(p => `
+    <div class="card palette-card">
+      <div class="palette-actions">
         <button class="primary" onclick="openPaletteModal(${p.id})" title="Редактировать">✎</button>
         <button class="danger" onclick="deletePalette(${p.id})" title="Удалить">×</button>
       </div>
-      <img src="${p.img_base64 || 'https://placehold.co/300x200/eeeeee/cccccc?text=No+Image'}" class="palette-img" alt="${p.name}">
+      <img src="${p.img_base64 || 'https://placehold.co/300x200/eeeeee/cccccc?text=No+Image'}" class="palette-img" alt="${p.name}" onclick="viewImage('${p.img_base64}')" title="Нажмите, чтобы увеличить">
       <div class="palette-name">${p.name}</div>
     </div>
   `).join('');
+
+  // Добавляем кнопку "Добавить палитру" в конец сетки
+  html += `
+    <div class="add-palette-btn" onclick="openPaletteModal()">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      <span>Добавить палитру</span>
+    </div>
+  `;
+
+  grid.innerHTML = html;
 }
 
 function openPaletteModal(id = null) {
-  const title = $('paletteModalTitle');
-  const editId = $('palEditId');
-  const nameInput = $('palNewName');
-  const urlInput = $('palNewUrl');
-  const imgInput = $('palNewImg');
-  const preview = $('palImgPreview');
-
-  imgInput.value = '';
-  preview.innerHTML = '';
-  tempPaletteImg = null;
-
+  const title = $('paletteModalTitle'); const editId = $('palEditId');
+  const nameInput = $('palNewName'); const urlInput = $('palNewUrl');
+  const imgInput = $('palNewImg'); const preview = $('palImgPreview');
+  imgInput.value = ''; preview.innerHTML = ''; tempPaletteImg = null;
   if (id) {
     const p = palettesData.find(x => x.id === id);
-    title.textContent = 'Редактировать палитру';
-    editId.value = p.id;
-    nameInput.value = p.name;
-    urlInput.value = p.url || '';
-    tempPaletteImg = p.img_base64;
-    if (p.img_base64) {
-      preview.innerHTML = `<img src="${p.img_base64}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(текущее фото)</span>`;
-    }
+    title.textContent = 'Редактировать палитру'; editId.value = p.id;
+    nameInput.value = p.name; urlInput.value = p.url || ''; tempPaletteImg = p.img_base64;
+    if (p.img_base64) preview.innerHTML = `<img src="${p.img_base64}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(текущее фото)</span>`;
   } else {
-    title.textContent = 'Добавить палитру';
-    editId.value = '';
-    nameInput.value = '';
-    urlInput.value = '';
+    title.textContent = 'Добавить палитру'; editId.value = ''; nameInput.value = ''; urlInput.value = '';
   }
-
   $('paletteModal').classList.add('active');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   $('palNewImg').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Сжимаем картинку перед отправкой в базу (чтобы не превышать лимит)
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
       const img = new Image();
       img.onload = function() {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 600;
-        const scaleSize = MAX_WIDTH / img.width;
-        canvas.width = MAX_WIDTH;
-        canvas.height = img.height * scaleSize;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        // Сжимаем в JPEG с качеством 0.7
+        const MAX_WIDTH = 600; const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         tempPaletteImg = canvas.toDataURL('image/jpeg', 0.7);
         $('palImgPreview').innerHTML = `<img src="${tempPaletteImg}" style="height:50px; border-radius:4px; margin-top:4px;"><br><span style="font-size:12px;">(новое фото)</span>`;
       };
@@ -1257,41 +1192,28 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function savePalette() {
-  const id = $('palEditId').value;
-  const name = $('palNewName').value;
+  const id = $('palEditId').value; const name = $('palNewName').value;
   const url = $('palNewUrl').value || null;
-  
   if (!name) { alert('Введите название палитры'); return; }
   if (!tempPaletteImg && !id) { alert('Пожалуйста, выберите фото для палитры'); return; }
-
   if (id) {
-    // Редактирование
     const updateData = { name: name, url: url };
     if (tempPaletteImg) updateData.img_base64 = tempPaletteImg;
-
     const { error } = await supabaseClient.from('warehouse_palettes').update(updateData).eq('id', id);
     if (error) { alert('Ошибка: ' + error.message); return; }
     toast('Палитра обновлена');
   } else {
-    // Создание
-    const { error } = await supabaseClient.from('warehouse_palettes').insert([{
-      name: name,
-      url: url,
-      img_base64: tempPaletteImg
-    }]);
+    const { error } = await supabaseClient.from('warehouse_palettes').insert([{ name: name, url: url, img_base64: tempPaletteImg }]);
     if (error) { alert('Ошибка: ' + error.message); return; }
     toast('Палитра добавлена');
   }
-
-  closeModal('paletteModal');
-  await loadPalettes();
+  closeModal('paletteModal'); await loadPalettes();
 }
 
 async function deletePalette(id) {
   if (!confirm('Удалить эту палитру?')) return;
   await supabaseClient.from('warehouse_palettes').delete().eq('id', id);
-  await loadPalettes();
-  toast('Палитра удалена');
+  await loadPalettes(); toast('Палитра удалена');
 }
 
 // --- МОДАЛКИ ---
