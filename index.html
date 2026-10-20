@@ -543,20 +543,18 @@
 
 <script>
 // ==========================================
-// 1. НАСТРОЙКИ SUPABASE (С СОХРАНЕНИЕМ СЕССИИ)
+// 1. НАСТРОЙКИ SUPABASE
 // ==========================================
 const SUPABASE_URL = 'https://hdsfocdvtgfzagqvgrtv.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhkc2ZvY2R2dGdmemFncXZncnR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNzE3NDQsImV4cCI6MjEwNzg0Nzc0NH0._DmYReNHr6D-qB1GfjSJ9A55SAtbVyXnOSZim13nWSs';
 
 const { createClient } = supabase;
-// persistSession: true — гарантирует, что сессия сохранится после перезагрузки страницы
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 });
+
+// ПАРОЛЬ ДЛЯ РЕДАКТИРОВАНИЯ ПАЛИТР И СООТВЕТСТВИЙ
+const SECRET_PASSWORD = '676767';
 
 // ============ УТИЛИТЫ ============
 const $=id=>document.getElementById(id);
@@ -568,6 +566,14 @@ function toast(msg, isError = false){
   t.className='toast show';
   clearTimeout(t._t); 
   t._t=setTimeout(()=>t.className='toast',3000); 
+}
+
+// Функция проверки пароля
+function checkPassword() {
+  const pass = prompt('Для этого действия введите секретный код:');
+  if (pass === SECRET_PASSWORD) return true;
+  if (pass !== null) toast('Неверный код!', true);
+  return false;
 }
 
 function copyToClipboard(text) {
@@ -978,7 +984,7 @@ function deleteComparisonGroup(id) {
   comparisonGroups = comparisonGroups.filter(g => g.id !== id); renderMaterials();
 }
 
-// ============ СООТВЕТСТВИЯ ============
+// ============ СООТВЕТСТВИЯ (ЗАЩИЩЕНО ПАРОЛЕМ) ============
 async function loadMatches() {
   const { data, error } = await supabaseClient.from('color_matches').select('*').order('created_at');
   if (error) { console.error(error); return; }
@@ -1002,11 +1008,29 @@ function renderMatches() {
     </tr>`).join('');
 }
 
-async function addMatchRow() { await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "" }]); await loadMatches(); }
-async function updateMatch(id, field, value) { await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id); const m = matchData.find(x => x.id === id); if (m) m[field] = value; }
-async function deleteMatch(id) { await supabaseClient.from('color_matches').delete().eq('id', id); await loadMatches(); }
+async function addMatchRow() {
+  if (!checkPassword()) return;
+  await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "" }]); 
+  await loadMatches(); 
+}
+
+async function updateMatch(id, field, value) { 
+  if (!checkPassword()) { renderMatches(); return; } // Если пароль неверный, сбрасываем ввод
+  await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id); 
+  const m = matchData.find(x => x.id === id); 
+  if (m) m[field] = value; 
+}
+
+async function deleteMatch(id) { 
+  if (!checkPassword()) return;
+  await supabaseClient.from('color_matches').delete().eq('id', id); 
+  await loadMatches(); 
+}
+
 function prefillMatch(text) { $('matchCode').value = text; $('matchModal').classList.add('active'); }
+
 async function saveMatch() {
+  if (!checkPassword()) return;
   const code = $('matchCode').value; const color = $('matchColorName').value;
   if (!code || !color) { alert('Заполните поля'); return; }
   const { error } = await supabaseClient.from('color_matches').insert([{ color_from: code, color_to: color }]);
@@ -1085,7 +1109,7 @@ async function saveNewRate() {
   closeModal('calcModal'); await loadRates(); toast('Норма сохранена');
 }
 
-// ============ ПАЛИТРЫ ============
+// ============ ПАЛИТРЫ (ЗАЩИЩЕНО ПАРОЛЕМ) ============
 async function loadPalettes() {
   const { data, error } = await supabaseClient.from('warehouse_palettes').select('*').order('name');
   if (error) { console.error(error); return; }
@@ -1119,10 +1143,14 @@ function renderPalettes() {
 }
 
 function openPaletteModal(id = null) {
+  // При редактировании просим пароль
+  if (id && !checkPassword()) return;
+
   const title = $('paletteModalTitle'); const editId = $('palEditId');
   const nameInput = $('palNewName'); const urlInput = $('palNewUrl');
   const imgInput = $('palNewImg'); const preview = $('palImgPreview');
   imgInput.value = ''; preview.innerHTML = ''; tempPaletteImg = null;
+  
   if (id) {
     const p = palettesData.find(x => x.id === id);
     title.textContent = 'Редактировать палитру'; editId.value = p.id;
@@ -1157,8 +1185,13 @@ document.addEventListener('DOMContentLoaded', () => {
 async function savePalette() {
   const id = $('palEditId').value; const name = $('palNewName').value;
   const url = $('palNewUrl').value || null;
+  
+  // При сохранении изменений снова проверяем
+  if (id && !checkPassword()) return;
+
   if (!name) { alert('Введите название палитры'); return; }
   if (!tempPaletteImg && !id) { alert('Пожалуйста, выберите фото для палитры'); return; }
+  
   if (id) {
     const updateData = { name: name, url: url };
     if (tempPaletteImg) updateData.img_base64 = tempPaletteImg;
@@ -1174,6 +1207,7 @@ async function savePalette() {
 }
 
 async function deletePalette(id) {
+  if (!checkPassword()) return;
   if (!confirm('Удалить эту палитру?')) return;
   await supabaseClient.from('warehouse_palettes').delete().eq('id', id);
   await loadPalettes(); toast('Палитра удалена');
