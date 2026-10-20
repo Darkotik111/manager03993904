@@ -58,7 +58,7 @@
   button.icon-btn { padding: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; line-height: 1; }
 
   /* --- LAYOUT --- */
-  .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s; z-index: 100;}
   .sidebar-header { padding: 24px; font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
   .sidebar-header span { font-size: 13px; color: var(--text-muted); font-weight: 400; }
   
@@ -68,28 +68,17 @@
   .nav-item.active { background: var(--primary-light); color: var(--primary); }
   .nav-icon { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;}
 
-  .main-content { flex: 1; overflow-y: auto; padding: 40px; }
+  .sidebar-image-container { padding: 16px; text-align: center; display: flex; justify-content: center; align-items: center; flex: 1; }
+  .sidebar-image-container img { max-width: 100%; max-height: 150px; border-radius: 12px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+  
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+
+  .main-content { flex: 1; overflow-y: auto; padding: 40px; width: 100%; }
   .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;}
   .page-title { font-size: 28px; font-weight: 700; margin: 0; }
   .page-subtitle { color: var(--text-muted); margin-top: 8px; font-size: 15px; }
 
-  /* --- КАРТИНКА В САЙДБАРЕ --- */
-  .sidebar-image-container {
-    padding: 16px;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1; /* Растягивает контейнер, прижимая картинку к низу */
-  }
-  .sidebar-image-container img {
-    max-width: 100%;
-    max-height: 200px;
-    border-radius: 12px;
-    object-fit: contain;
-    /* Мягкая тень для картинки */
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-  }
+  .mobile-header { display: none; background: var(--surface); padding: 12px 20px; border-bottom: 1px solid var(--border); align-items: center; justify-content: space-between; z-index: 101; }
 
   /* --- ОБЩИЕ ЭЛЕМЕНТЫ --- */
   .search-input { 
@@ -108,39 +97,36 @@
   .faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; gap: 12px;}
   .faq-item:last-child { border-bottom: none; }
   .faq-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;}
-  .faq-q { font-weight: 600; font-size: 16px; }
+  .faq-q { font-weight: 600; font-size: 16px; margin-bottom: 4px;}
+  .faq-author { font-size: 12px; color: var(--text-muted); }
   .faq-a { color: var(--text-muted); font-size: 15px; line-height: 1.6; background: var(--bg); padding: 12px; border-radius: 8px; margin-top: 8px;}
+  .faq-answer-author { font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;}
   
-  .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; }
+  .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap;}
   .status-badge.has-answer { background: var(--success-light); color: var(--success); }
   .status-badge.no-answer { background: var(--warning); color: #000; }
+  .status-badge:hover { opacity: 0.8; }
 
-  /* --- МАТЕРИАЛЫ (СРАВНЕНИЕ) --- */
+  /* --- ПРЕДЛОЖЕНИЯ --- */
+  .idea-card { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start;}
+  .like-btn { display: flex; flex-direction: column; align-items: center; background: var(--bg); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; min-width: 60px;}
+  .like-btn:hover { background: #eef1f4; }
+  .like-btn.liked { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+  .like-icon { font-size: 20px; margin-bottom: 4px; }
+  .like-count { font-size: 14px; font-weight: 700; }
+  .idea-content { flex: 1; }
+  .idea-title { font-weight: 600; font-size: 16px; margin-bottom: 4px;}
+  .idea-author { font-size: 12px; color: var(--text-muted); }
+
+  /* --- МАТЕРИАЛЫ --- */
   .comparison-block { margin-bottom: 32px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: var(--surface); position: relative;}
   .comparison-remove { position: absolute; top: 12px; right: 12px; }
-  
-  .materials-scale-container { 
-    position: relative; margin: 40px 0 30px 0; padding-top: 20px; 
-    border-bottom: 2px solid var(--border); height: 100px;
-  }
+  .materials-scale-container { position: relative; margin: 40px 0 30px 0; padding-top: 20px; border-bottom: 2px solid var(--border); height: 100px; }
   .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); position: absolute; bottom: -24px; width: 100%; }
-  
-  .material-marker {
-    position: absolute; display: flex; flex-direction: column; align-items: center;
-    transform: translateX(-50%); bottom: 0; width: 120px;
-  }
-  .material-dot {
-    width: 16px; height: 16px; border-radius: 50%; background: var(--primary);
-    border: 3px solid var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    transition: 0.2s; z-index: 2;
-  }
+  .material-marker { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); bottom: 0; width: 120px; }
+  .material-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--primary); border: 3px solid var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: 0.2s; z-index: 2; }
   .material-line { height: 30px; width: 2px; background: var(--border); }
-  .material-label { 
-    font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; margin-bottom: 4px;
-    background: var(--surface); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-  }
-
+  .material-label { font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; margin-bottom: 4px; background: var(--surface); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   .material-card { display: flex; flex-direction: column; gap: 16px; }
   .material-title { font-weight: 600; font-size: 16px; }
   .material-pros-cons { display: flex; gap: 16px; font-size: 14px; margin-top: 8px; }
@@ -151,7 +137,6 @@
   .match-table { width: 100%; border-collapse: collapse; }
   .match-table th, .match-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top;}
   .match-table th { font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
-  
   .match-inputs { display: flex; flex-direction: column; gap: 4px; }
   .match-inputs input { padding: 4px 8px; border: 1px solid transparent; background: transparent; border-radius: 4px; font-family: var(--font); font-size: 14px; width: 100%; }
   .match-inputs input:hover, .match-inputs input:focus { border-color: var(--border); background: var(--bg); outline: none; }
@@ -172,7 +157,6 @@
   .palette-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
   .palette-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--bg); }
   .palette-name { font-weight: 600; font-size: 16px; }
-  
   .palette-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
   .palette-actions button { background: rgba(255,255,255,0.9); box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 28px; height: 28px; font-size: 14px; border-radius: 50%;}
 
@@ -185,15 +169,25 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: 0.3s; z-index: 2000; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
+  /* --- АДАПТИВ --- */
   @media (max-width: 768px) {
     body { flex-direction: column; }
-    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
-    .sidebar-nav { flex-direction: row; overflow-x: auto; padding: 12px; }
-    .nav-item { white-space: nowrap; }
+    
+    .mobile-header { display: flex; }
+    
+    .sidebar { 
+      position: fixed; top: 57px; left: 0; bottom: 0; 
+      transform: translateX(-100%); 
+      box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    }
+    .sidebar.open { transform: translateX(0); }
+    
     .main-content { padding: 20px; }
     .grid-2, .grid-4 { grid-template-columns: 1fr; }
-    /* На телефоне картинку прячем, чтобы не занимала экран */
     .sidebar-image-container { display: none; } 
+    
+    .faq-header { flex-direction: column; gap: 8px; }
+    .status-badge { align-self: flex-start; }
   }
 </style>
 </head>
@@ -211,183 +205,210 @@
 </div>
 
 <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
-<div id="appScreen" style="display:none; width:100%; height:100%;">
-  <div class="sidebar">
-    <div class="sidebar-header">
-      С заботой, от склада ❤️
-      <span>Портал менеджера</span>
-    </div>
-    <div class="sidebar-nav">
-      <div class="nav-item active" onclick="switchTab('faq', this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
-        Вопросы (FAQ)
-      </div>
-      <div class="nav-item" onclick="switchTab('materials', this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
-        Материалы
-      </div>
-      <div class="nav-item" onclick="switchTab('matches', this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-        Соответствия
-      </div>
-      <div class="nav-item" onclick="switchTab('calculator', this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 8h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
-        Калькулятор
-      </div>
-      <div class="nav-item" onclick="switchTab('palettes', this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-        Палитры
-      </div>
-    </div>
-    
-    <!-- МЕСТО ДЛЯ КАРТИНКИ С КОТИКОМ -->
-    <div class="sidebar-image-container">
-      <img src="meow.jpg" alt="Милый котик" onerror="this.style.display='none'">
-    </div>
-
-    <div style="padding: 16px; border-top: 1px solid var(--border);">
-      <button class="danger" style="width:100%" onclick="logout()">Выйти</button>
-    </div>
+<div id="appScreen" style="display:none; width:100%; height:100%; flex-direction: column;">
+  
+  <!-- МОБИЛЬНАЯ ШАПКА -->
+  <div class="mobile-header">
+    <div style="font-weight:700;">С заботой ❤️</div>
+    <button onclick="toggleSidebar()" style="padding:6px; border:none; background:transparent;">
+      <svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
   </div>
 
-  <div class="main-content">
-    <!-- РАЗДЕЛ 1: FAQ -->
-    <div id="tab-faq" class="tab-content">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Частые вопросы</h1>
-          <div class="page-subtitle">База знаний для менеджеров</div>
+  <div style="display:flex; flex:1; overflow:hidden; position:relative;">
+    <!-- САЙДБАР -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        С заботой, от склада ❤️
+        <span>Портал менеджера</span>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-item active" onclick="switchTab('faq', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+          Вопросы (FAQ)
         </div>
-        <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
+        <div class="nav-item" onclick="switchTab('ideas', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+          Предложения
+        </div>
+        <div class="nav-item" onclick="switchTab('materials', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+          Материалы
+        </div>
+        <div class="nav-item" onclick="switchTab('matches', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          Соответствия
+        </div>
+        <div class="nav-item" onclick="switchTab('calculator', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 8h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
+          Калькулятор
+        </div>
+        <div class="nav-item" onclick="switchTab('palettes', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          Палитры
+        </div>
       </div>
       
-      <input type="text" class="search-input" id="faqSearch" placeholder="Начните вводить вопрос, чтобы найти ответ..." oninput="renderFaq()">
-      
-      <div class="card" id="faqList"></div>
-    </div>
-
-    <!-- РАЗДЕЛ 2: МАТЕРИАЛЫ -->
-    <div id="tab-materials" class="tab-content" style="display:none;">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Материалы и альтернативы</h1>
-          <div class="page-subtitle">Визуальное сравнение характеристик и стоимости</div>
-        </div>
-        <div style="display:flex; gap:10px;">
-          <button class="primary" onclick="addComparisonGroup()">+ Создать сопоставление</button>
-          <button class="primary" onclick="openMaterialModal()">+ Добавить материал</button>
-        </div>
+      <div class="sidebar-image-container">
+        <img src="meow.jpg" alt="Милый котик" onerror="this.style.display='none'">
       </div>
 
-      <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
-      
-      <div id="comparisonsContainer"></div>
-
-      <h3 style="margin-top:40px;">Все материалы</h3>
-      <div class="grid grid-2" id="materialsList"></div>
-    </div>
-
-    <!-- РАЗДЕЛ 3: СООТВЕТСТВИЯ -->
-    <div id="tab-matches" class="tab-content" style="display:none;">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Соответствия</h1>
-          <div class="page-subtitle">Соответствия цветов между палитрами</div>
-        </div>
-        <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
-      </div>
-      
-      <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию цвета..." oninput="renderMatches()">
-
-      <div class="card">
-        <table class="match-table">
-          <thead>
-            <tr>
-              <th>Этот цвет</th>
-              <th>Соответствует этому</th>
-              <th style="width:50px;"></th>
-            </tr>
-          </thead>
-          <tbody id="matchTableBody"></tbody>
-        </table>
+      <div class="sidebar-footer">
+        <button class="danger" style="width:100%" onclick="logout()">Выйти</button>
       </div>
     </div>
 
-    <!-- РАЗДЕЛ 4: КАЛЬКУЛЯТОР -->
-    <div id="tab-calculator" class="tab-content" style="display:none;">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Расчёт материалов</h1>
-          <div class="page-subtitle">Умный расчет с учетом техники и слоев</div>
-        </div>
-        <button class="primary" onclick="openCalcModal()">+ Добавить расход</button>
-      </div>
+    <!-- КОНТЕНТ -->
+    <div class="main-content">
       
-      <div class="calc-container">
-        <div class="card calc-form">
-          <h3 style="margin-top:0;">Калькулятор</h3>
-          
-          <div class="form-group">
-            <label>Выберите материал из базы</label>
-            <select id="calcMaterial" onchange="updateCalc()"></select>
+      <!-- РАЗДЕЛ 1: FAQ -->
+      <div id="tab-faq" class="tab-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Частые вопросы</h1>
+            <div class="page-subtitle">База знаний для менеджеров</div>
           </div>
-          
-          <div class="form-group">
-            <label>Площадь покрытия (кв. м)</label>
-            <input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()">
-          </div>
-
-          <div class="form-group">
-            <label>Техника нанесения (название)</label>
-            <input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()">
-          </div>
-
-          <div class="form-group">
-            <label>Коэффициент расхода техники</label>
-            <input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()">
-            <div style="font-size:12px; color:var(--text-muted);">Стандарт = 1.0. Краскопульт = 1.15. Кельма = 0.9</div>
-          </div>
-
-          <div class="form-group">
-            <label>Количество слоев (от 1 до 7)</label>
-            <select id="calcLayers" onchange="updateCalc()">
-              <option value="1">1 слой</option>
-              <option value="2" selected>2 слоя</option>
-              <option value="3">3 слоя</option>
-              <option value="4">4 слоя</option>
-              <option value="5">5 слоев</option>
-              <option value="6">6 слоев</option>
-              <option value="7">7 слоев</option>
-            </select>
-          </div>
-
-          <div class="calc-result" id="calcResult" style="display:none;">
-            <h4>Необходимо закупить:</h4>
-            <div class="number" id="calcTotalLitres">0</div>
-            <div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
-          </div>
+          <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
         </div>
-
-        <div class="card calc-list">
-          <h3 style="margin-top:0;">База расходов</h3>
-          <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- РАЗДЕЛ 5: ПАЛИТРЫ -->
-    <div id="tab-palettes" class="tab-content" style="display:none;">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Палитры на складе</h1>
-          <div class="page-subtitle">Управление палитрами производителей</div>
-        </div>
-        <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
+        
+        <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="renderFaq()">
+        <div class="card" id="faqList"></div>
       </div>
 
-      <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
-      
-      <div class="grid grid-4" id="palettesList"></div>
+      <!-- РАЗДЕЛ 2: ПРЕДЛОЖЕНИЯ -->
+      <div id="tab-ideas" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Предложения сотрудников</h1>
+            <div class="page-subtitle">Идеи по улучшению работы склада</div>
+          </div>
+          <button class="primary" onclick="openIdeaModal()">+ Предложить идею</button>
+        </div>
+        <div id="ideasList"></div>
+      </div>
+
+      <!-- РАЗДЕЛ 3: МАТЕРИАЛЫ -->
+      <div id="tab-materials" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Материалы и альтернативы</h1>
+            <div class="page-subtitle">Визуальное сравнение характеристик и стоимости</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="primary" onclick="addComparisonGroup()">+ Сопоставление</button>
+            <button class="primary" onclick="openMaterialModal()">+ Материал</button>
+          </div>
+        </div>
+
+        <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
+        
+        <div id="comparisonsContainer"></div>
+        <h3 style="margin-top:40px;">Все материалы</h3>
+        <div class="grid grid-2" id="materialsList"></div>
+      </div>
+
+      <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
+      <div id="tab-matches" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Соответствия</h1>
+            <div class="page-subtitle">Соответствия цветов между палитрами</div>
+          </div>
+          <button class="primary" onclick="addMatchRow()">+ Добавить строку</button>
+        </div>
+        
+        <input type="text" class="search-input" id="matchSearch" placeholder="Поиск по коду или названию цвета..." oninput="renderMatches()">
+
+        <div class="card">
+          <table class="match-table">
+            <thead>
+              <tr>
+                <th>Этот цвет</th>
+                <th>Соответствует этому</th>
+                <th style="width:50px;"></th>
+              </tr>
+            </thead>
+            <tbody id="matchTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- РАЗДЕЛ 5: КАЛЬКУЛЯТОР -->
+      <div id="tab-calculator" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Расчёт материалов</h1>
+            <div class="page-subtitle">Умный расчет с учетом техники и слоев</div>
+          </div>
+          <button class="primary" onclick="openCalcModal()">+ Добавить расход</button>
+        </div>
+        
+        <div class="calc-container">
+          <div class="card calc-form">
+            <h3 style="margin-top:0;">Калькулятор</h3>
+            
+            <div class="form-group">
+              <label>Выберите материал из базы</label>
+              <select id="calcMaterial" onchange="updateCalc()"></select>
+            </div>
+            
+            <div class="form-group">
+              <label>Площадь покрытия (кв. м)</label>
+              <input type="number" id="calcArea" placeholder="Например: 20" oninput="updateCalc()">
+            </div>
+
+            <div class="form-group">
+              <label>Техника нанесения (название)</label>
+              <input type="text" id="calcTechName" placeholder="Например: Безвоздушное распыление" oninput="updateCalc()">
+            </div>
+
+            <div class="form-group">
+              <label>Коэффициент расхода техники</label>
+              <input type="number" id="calcTechCoef" value="1.0" step="0.05" placeholder="1.0" oninput="updateCalc()">
+              <div style="font-size:12px; color:var(--text-muted);">Стандарт = 1.0. Краскопульт = 1.15. Кельма = 0.9</div>
+            </div>
+
+            <div class="form-group">
+              <label>Количество слоев (от 1 до 7)</label>
+              <select id="calcLayers" onchange="updateCalc()">
+                <option value="1">1 слой</option>
+                <option value="2" selected>2 слоя</option>
+                <option value="3">3 слоя</option>
+                <option value="4">4 слоя</option>
+                <option value="5">5 слоев</option>
+                <option value="6">6 слоев</option>
+                <option value="7">7 слоев</option>
+              </select>
+            </div>
+
+            <div class="calc-result" id="calcResult" style="display:none;">
+              <h4>Необходимо закупить:</h4>
+              <div class="number" id="calcTotalLitres">0</div>
+              <div id="calcInfoText" style="font-size:13px; color:var(--text-muted); margin-top:8px;"></div>
+            </div>
+          </div>
+
+          <div class="card calc-list">
+            <h3 style="margin-top:0;">База расходов</h3>
+            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- РАЗДЕЛ 6: ПАЛИТРЫ -->
+      <div id="tab-palettes" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Палитры на складе</h1>
+            <div class="page-subtitle">Управление палитрами производителей</div>
+          </div>
+          <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
+        </div>
+
+        <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
+        <div class="grid grid-4" id="palettesList"></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -406,6 +427,36 @@
       <textarea id="faqNewA" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Введите ответ..."></textarea>
     </div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaq()">Сохранить</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="faqAnswerModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('faqAnswerModal')">×</button>
+    <h3>Ответить на вопрос</h3>
+    <p id="faqQuestionText" style="font-weight:600; margin-bottom:16px;"></p>
+    <input type="hidden" id="faqAnswerId">
+    <div class="form-group">
+      <label>Ваш ответ</label>
+      <textarea id="faqAnswerText" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Напишите ответ..."></textarea>
+    </div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveFaqAnswer()">Отправить ответ</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ideaModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('ideaModal')">×</button>
+    <h3>Предложить идею</h3>
+    <div class="form-group">
+      <label>Суть предложения</label>
+      <input type="text" id="ideaNewTitle" placeholder="Кратко опишите идею...">
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label>Подробности (необязательно)</label>
+      <textarea id="ideaNewDesc" rows="3" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); font-family:var(--font);" placeholder="Как это улучшит работу?"></textarea>
+    </div>
+    <button class="primary" style="width:100%; margin-top:16px;" onclick="saveIdea()">Отправить идею</button>
   </div>
 </div>
 
@@ -506,18 +557,16 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ВЫБОРА МАТЕРИАЛОВ ДЛЯ СРАВНЕНИЯ -->
 <div class="modal-overlay" id="compareModal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('compareModal')">×</button>
     <h3>Создать сопоставление</h3>
-    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы, которые хотите сравнить на одной шкале:</p>
+    <p style="color:var(--text-muted); font-size:14px;">Выберите материалы для сравнения на одной шкале:</p>
     <div id="compareCheckboxes" style="display:flex; flex-direction:column; gap:10px; margin-top:16px; max-height:300px; overflow-y:auto;"></div>
     <button class="primary" style="width:100%; margin-top:16px;" onclick="saveComparisonGroup()">Создать шкалу</button>
   </div>
 </div>
 
-<!-- МОДАЛКА ПАЛИТРЫ -->
 <div class="modal-overlay" id="paletteModal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('paletteModal')">×</button>
@@ -561,16 +610,21 @@ const $=id=>document.getElementById(id);
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.className='toast show';
   clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3000); }
 
+let currentUserEmail = '';
+
 // ============ АВТОРИЗАЦИЯ ============
 async function login() {
   const email = $('authEmail').value;
   const pass = $('authPass').value;
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
   
   if (error) {
     $('authError').textContent = error.message;
     $('authError').style.display = 'block';
-  } else { checkAuth(); }
+  } else { 
+    currentUserEmail = data.user.email;
+    checkAuth(); 
+  }
 }
 
 async function logout() { await supabaseClient.auth.signOut(); location.reload(); }
@@ -578,6 +632,7 @@ async function logout() { await supabaseClient.auth.signOut(); location.reload()
 async function checkAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
+    currentUserEmail = session.user.email;
     $('authScreen').style.display = 'none';
     $('appScreen').style.display = 'flex';
     initApp(); 
@@ -594,10 +649,20 @@ function switchTab(tabId, el) {
   
   $(`tab-${tabId}`).style.display = 'block';
   el.classList.add('active');
+  
+  // Закрываем меню на телефоне
+  if (window.innerWidth <= 768) {
+    $('sidebar').classList.remove('open');
+  }
+}
+
+function toggleSidebar() {
+  $('sidebar').classList.toggle('open');
 }
 
 // ============ ИНИЦИАЛИЗАЦИЯ ============
 let faqData = [];
+let ideasData = [];
 let materialsData = [];
 let matchData = [];
 let ratesData = [];
@@ -607,39 +672,37 @@ let tempPaletteImg = null;
 
 async function initApp() {
   faqData = [
-    { id: 1, q: "Какой расход у краски Tikkurila?", a: "Расход зависит от материала, в среднем 1 литр на 8-10 кв.м.", author: "admin" },
-    { id: 2, q: "Как разбавить грунтовку?", a: "", author: "admin" }
+    { id: 1, q: "Какой расход у краски Tikkurila?", a: "Расход зависит от материала, в среднем 1 литр на 8-10 кв.м.", author: "manager1@sklad.ru", answerAuthor: "admin@sklad.ru" },
+    { id: 2, q: "Как разбавить грунтовку?", a: "", author: "manager2@sklad.ru", answerAuthor: null }
+  ];
+
+  ideasData = [
+    { id: 1, title: "Купить новую тележку для склада", desc: "Старая скрипит и медленно едет.", author: "manager1@sklad.ru", likes: ["admin@sklad.ru"] },
+    { id: 2, title: "Сделать больше света над стеллажом 4", desc: "", author: "manager3@sklad.ru", likes: [] }
   ];
 
   materialsData = [
     { id: 1, name: "San Pierre Premium", price: 5, pros: ["Идеальная текстура", "Долговечность"], cons: ["Высокая цена", "Долго сохнет"] },
     { id: 2, name: "Material X Альтернатива", price: 3, pros: ["Хорошая цена", "Быстро сохнет"], cons: ["Чуть хуже текстура"] },
-    { id: 3, name: "Бюджетный аналог Y", price: 1, pros: ["Самая низкая цена"], cons: ["Требует 2 слоя", "Мел"] },
-    { id: 4, name: "Универсальный состав Z", price: 2, pros: ["Подходит везде"], cons: ["Средняя стойкость"] },
-    { id: 5, name: "Премиум Люкс", price: 5, pros: ["Шикарный вид"], cons: ["Очень дорого"] }
+    { id: 3, name: "Бюджетный аналог Y", price: 1, pros: ["Самая низкая цена"], cons: ["Требует 2 слоя", "Мел"] }
   ];
   
   matchData = [
-    { id: 1, code: "NCS S 1500-N", color: "Бежевый МКА" },
-    { id: 2, code: "RAL 9010", color: "Чистый белый Замша" }
+    { id: 1, code: "NCS S 1500-N", color: "Бежевый МКА" }
   ];
 
   ratesData = [
-    { id: 1, name: "Краска Интерьерная", rate: 0.15, weight: "1.3", tech: "Валик", notes: "Наносить в 2 слоя" },
-    { id: 2, name: "Грунтовка глубокого проникновения", rate: 0.1, weight: "1.0", tech: "Краскопульт", notes: "Разбавить водой 1:5" }
+    { id: 1, name: "Краска Интерьерная", rate: 0.15, weight: "1.3", tech: "Валик", notes: "Наносить в 2 слоя" }
   ];
 
   palettesData = [
-    { id: 1, name: "Tikkurila", url: "https://www.tikkurila.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Tikkurila" },
-    { id: 2, name: "Caparol", url: "https://www.caparol.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Caparol" },
-    { id: 3, name: "Dulux", url: "https://www.dulux.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Dulux" }
+    { id: 1, name: "Tikkurila", url: "https://www.tikkurila.ru", img: "https://placehold.co/300x200/E7F1FF/0D6EFD?text=Tikkurila" }
   ];
 
-  comparisonGroups = [
-    { id: 1, materialIds: [1, 2, 3] } 
-  ];
+  comparisonGroups = [];
 
   renderFaq();
+  renderIdeas();
   renderMaterials();
   renderMatches();
   renderCalculator();
@@ -656,22 +719,31 @@ function renderFaq() {
   );
 
   if (filtered.length === 0) {
-    list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="openFaqModal()">Задать вопрос</button></div>`;
+    list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`;
     return;
   }
 
   list.innerHTML = filtered.map(item => {
     const hasAnswer = item.a && item.a.trim().length > 0;
     
-    const answerHtml = hasAnswer ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;"><p>${item.a}</p></div>` : '';
+    const answerHtml = hasAnswer 
+      ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;">
+           <p>${item.a}</p>
+           <div class="faq-answer-author">Ответил: ${item.answerAuthor || 'Неизвестно'}</div>
+         </div>` 
+      : '';
+      
     const statusHtml = hasAnswer 
       ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>`
-      : `<div class="status-badge no-answer">Ожидает ответа</div>`;
+      : `<div class="status-badge no-answer" onclick="openAnswerModal(${item.id})">Ожидает ответа</div>`;
 
     return `
       <div class="faq-item">
         <div class="faq-header">
-          <div class="faq-q">${item.q}</div>
+          <div>
+            <div class="faq-q">${item.q}</div>
+            <div class="faq-author">Спросил: ${item.author}</div>
+          </div>
           <div style="display:flex; gap:8px; align-items:center;">
             ${statusHtml}
             <button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button>
@@ -689,7 +761,13 @@ function saveFaq() {
   const a = $('faqNewA').value;
   if (!q) { alert('Введите вопрос'); return; }
   
-  faqData.unshift({ id: Date.now(), q, a, author: "manager" });
+  faqData.unshift({ 
+    id: Date.now(), 
+    q: q, 
+    a: a, 
+    author: currentUserEmail, 
+    answerAuthor: a ? currentUserEmail : null 
+  });
   closeModal('faqModal');
   renderFaq();
   toast('Вопрос сохранен');
@@ -700,6 +778,97 @@ function deleteFaq(id) {
   faqData = faqData.filter(item => item.id !== id);
   renderFaq();
   toast('Вопрос удален');
+}
+
+function openAnswerModal(id) {
+  const item = faqData.find(x => x.id === id);
+  if (!item) return;
+  $('faqQuestionText').textContent = item.q;
+  $('faqAnswerId').value = id;
+  $('faqAnswerText').value = '';
+  $('faqAnswerModal').classList.add('active');
+}
+
+function saveFaqAnswer() {
+  const id = parseInt($('faqAnswerId').value);
+  const a = $('faqAnswerText').value;
+  
+  if (!a) { alert('Введите ответ'); return; }
+  
+  const item = faqData.find(x => x.id === id);
+  if (item) {
+    item.a = a;
+    item.answerAuthor = currentUserEmail;
+  }
+  
+  closeModal('faqAnswerModal');
+  renderFaq();
+  toast('Ответ добавлен');
+}
+
+// --- ПРЕДЛОЖЕНИЯ ---
+function renderIdeas() {
+  const list = $('ideasList');
+  
+  list.innerHTML = ideasData.map(item => {
+    const isLiked = item.likes.includes(currentUserEmail);
+    return `
+      <div class="card idea-card">
+        <div class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id})">
+          <div class="like-icon">${isLiked ? '❤️' : '🤍'}</div>
+          <div class="like-count">${item.likes.length}</div>
+        </div>
+        <div class="idea-content">
+          <div class="idea-title">${item.title}</div>
+          ${item.desc ? `<div style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">${item.desc}</div>` : ''}
+          <div class="idea-author">Предложил: ${item.author}</div>
+        </div>
+        <button class="danger icon-btn" onclick="deleteIdea(${item.id})" title="Удалить">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function openIdeaModal() {
+  $('ideaNewTitle').value = '';
+  $('ideaNewDesc').value = '';
+  $('ideaModal').classList.add('active');
+}
+
+function saveIdea() {
+  const title = $('ideaNewTitle').value;
+  const desc = $('ideaNewDesc').value;
+  if (!title) { alert('Введите суть предложения'); return; }
+
+  ideasData.unshift({
+    id: Date.now(),
+    title: title,
+    desc: desc,
+    author: currentUserEmail,
+    likes: []
+  });
+  closeModal('ideaModal');
+  renderIdeas();
+  toast('Идея отправлена');
+}
+
+function toggleLike(id) {
+  const item = ideasData.find(x => x.id === id);
+  if (!item) return;
+  
+  const index = item.likes.indexOf(currentUserEmail);
+  if (index === -1) {
+    item.likes.push(currentUserEmail);
+  } else {
+    item.likes.splice(index, 1);
+  }
+  renderIdeas();
+}
+
+function deleteIdea(id) {
+  if (!confirm('Удалить это предложение?')) return;
+  ideasData = ideasData.filter(x => x.id !== id);
+  renderIdeas();
 }
 
 // --- МАТЕРИАЛЫ (СРАВНЕНИЕ) ---
@@ -1048,7 +1217,6 @@ function openPaletteModal(id = null) {
   const imgInput = $('palNewImg');
   const preview = $('palImgPreview');
 
-  // Сброс
   imgInput.value = '';
   preview.innerHTML = '';
   tempPaletteImg = null;
@@ -1071,7 +1239,6 @@ function openPaletteModal(id = null) {
   $('paletteModal').classList.add('active');
 }
 
-// Обработка загрузки файла
 document.addEventListener('DOMContentLoaded', () => {
   $('palNewImg').addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -1095,14 +1262,12 @@ function savePalette() {
   if (!tempPaletteImg) { alert('Пожалуйста, выберите фото для палитры'); return; }
 
   if (id) {
-    // Редактирование
     const p = palettesData.find(x => String(x.id) === String(id));
     p.name = name;
     p.url = url;
     p.img = tempPaletteImg;
     toast('Палитра обновлена');
   } else {
-    // Создание
     palettesData.push({
       id: Date.now(),
       name: name,
