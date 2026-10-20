@@ -23,9 +23,6 @@
     --danger-light: #F8D7DA;
     --warning: #FFC107;
     
-    --skeleton-bg: #e9ecef;
-    --skeleton-shine: #f8f9fa;
-
     --font: 'Inter', -apple-system, sans-serif;
     --radius: 12px;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -44,9 +41,6 @@
     --success-light: #1A3A2A;
     --danger-light: #3A1A1A;
     --shadow: 0 4px 12px rgba(0,0,0,0.3);
-    
-    --skeleton-bg: #2a2a2a;
-    --skeleton-shine: #3a3a3a;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -54,21 +48,6 @@
     margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); 
     height: 100vh; display: flex; overflow: hidden; transition: background 0.3s, color 0.3s;
   }
-
-  /* --- АНИМАЦИЯ СКЕЛЕТОНА --- */
-  @keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-  }
-  .skeleton {
-    background: var(--skeleton-bg);
-    background-image: linear-gradient(90deg, var(--skeleton-bg) 0px, var(--skeleton-shine) 40px, var(--skeleton-bg) 80px);
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite linear forwards;
-    border-radius: 6px;
-  }
-  .skeleton-text { height: 16px; margin-bottom: 8px; width: 100%; }
-  .skeleton-title { height: 24px; margin-bottom: 12px; width: 60%; }
 
   /* --- АВТОРИЗАЦИЯ И ПРОФИЛЬ --- */
   #authScreen, #profileScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -206,12 +185,11 @@
   }
   .palette-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
   
-  /* Фото палитры подстраивается под пропорции */
   .palette-img { 
     width: 100%; 
     height: auto; 
-    max-height: 300px; /* Чтобы не была гигантской */
-    object-fit: contain; /* Сохраняет пропорции */
+    max-height: 300px; 
+    object-fit: contain; 
     border-radius: 8px; 
     margin-bottom: 12px; 
     background: var(--bg); 
@@ -222,7 +200,6 @@
   .palette-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
   .palette-actions button { background: rgba(255,255,255,0.9); color: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 28px; height: 28px; font-size: 14px; border-radius: 50%;}
 
-  /* Кнопка добавления прямо в сетке */
   .add-palette-btn {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     border: 2px dashed var(--border); border-radius: 8px; cursor: pointer;
@@ -240,7 +217,6 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--surface); padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: 0.3s; z-index: 2000; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);}
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* --- ПРОСМОТР ФОТО (ZOOM) --- */
   #imageViewer {
     position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000;
     display: none; justify-content: center; align-items: center; padding: 40px;
@@ -355,11 +331,7 @@
           <button class="primary" onclick="openFaqModal()">+ Задать вопрос</button>
         </div>
         <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="renderFaq()">
-        <div class="card" id="faqList">
-          <div class="skeleton skeleton-title"></div>
-          <div class="skeleton skeleton-text"></div>
-          <div class="skeleton skeleton-text" style="width: 80%;"></div>
-        </div>
+        <div class="card" id="faqList">Загрузка...</div>
       </div>
 
       <!-- РАЗДЕЛ 2: ПРЕДЛОЖЕНИЯ -->
@@ -371,12 +343,7 @@
           </div>
           <button class="primary" onclick="openIdeaModal()">+ Предложить идею</button>
         </div>
-        <div id="ideasList">
-          <div class="card" style="display:flex; gap:16px; margin-bottom:16px;">
-            <div class="skeleton" style="width:60px; height:60px; border-radius:8px;"></div>
-            <div style="flex:1;"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div></div>
-          </div>
-        </div>
+        <div id="ideasList">Загрузка...</div>
       </div>
 
       <!-- РАЗДЕЛ 3: МАТЕРИАЛЫ -->
@@ -394,9 +361,7 @@
         <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
         <div id="comparisonsContainer"></div>
         <h3 style="margin-top:40px;">Все материалы</h3>
-        <div class="grid grid-2" id="materialsList">
-          <div class="card"><div class="skeleton skeleton-title"></div><div class="skeleton" style="height:40px; margin:12px 0;"></div></div>
-        </div>
+        <div class="grid grid-2" id="materialsList">Загрузка...</div>
       </div>
 
       <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
@@ -412,9 +377,7 @@
         <div class="card">
           <table class="match-table">
             <thead><tr><th>Этот цвет</th><th>Соответствует этому</th><th style="width:50px;"></th></tr></thead>
-            <tbody id="matchTableBody">
-              <tr><td><div class="skeleton skeleton-text"></div></td><td><div class="skeleton skeleton-text"></div></td><td></td></tr>
-            </tbody>
+            <tbody id="matchTableBody">Загрузка...</tbody>
           </table>
         </div>
       </div>
@@ -448,9 +411,7 @@
           </div>
           <div class="card calc-list">
             <h3 style="margin-top:0;">База расходов (Клик = копировать)</h3>
-            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
-              <div class="calc-item-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div></div>
-            </div>
+            <div id="consumptionList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">Загрузка...</div>
           </div>
         </div>
       </div>
@@ -465,10 +426,7 @@
           <button class="primary" onclick="openPaletteModal()">+ Добавить палитру</button>
         </div>
         <input type="text" class="search-input" id="paletteSearch" placeholder="Поиск по названию палитры..." oninput="renderPalettes()">
-        
-        <div class="grid grid-4" id="palettesList">
-          <div class="card" style="padding:16px;"><div class="skeleton" style="width:100%; height:160px; margin-bottom:12px; border-radius:8px;"></div></div>
-        </div>
+        <div class="grid grid-4" id="palettesList">Загрузка...</div>
       </div>
 
     </div>
@@ -585,13 +543,20 @@
 
 <script>
 // ==========================================
-// 1. НАСТРОЙКИ SUPABASE
+// 1. НАСТРОЙКИ SUPABASE (С СОХРАНЕНИЕМ СЕССИИ)
 // ==========================================
 const SUPABASE_URL = 'https://hdsfocdvtgfzagqvgrtv.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhkc2ZvY2R2dGdmemFncXZncnR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNzE3NDQsImV4cCI6MjEwNzg0Nzc0NH0._DmYReNHr6D-qB1GfjSJ9A55SAtbVyXnOSZim13nWSs';
 
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+// persistSession: true — гарантирует, что сессия сохранится после перезагрузки страницы
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
 // ============ УТИЛИТЫ ============
 const $=id=>document.getElementById(id);
@@ -614,7 +579,6 @@ function copyToClipboard(text) {
   });
 }
 
-// Открытие фото на весь экран
 function viewImage(src) {
   if (!src) return;
   $('viewerImg').src = src;
@@ -1121,7 +1085,7 @@ async function saveNewRate() {
   closeModal('calcModal'); await loadRates(); toast('Норма сохранена');
 }
 
-// ============ ПАЛИТРЫ (С ФОТО) ============
+// ============ ПАЛИТРЫ ============
 async function loadPalettes() {
   const { data, error } = await supabaseClient.from('warehouse_palettes').select('*').order('name');
   if (error) { console.error(error); return; }
@@ -1144,7 +1108,6 @@ function renderPalettes() {
     </div>
   `).join('');
 
-  // Добавляем кнопку "Добавить палитру" в конец сетки
   html += `
     <div class="add-palette-btn" onclick="openPaletteModal()">
       <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
