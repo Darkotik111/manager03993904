@@ -287,7 +287,7 @@
 </div>
 
 <!-- ЭКРАН ВХОДА -->
-<div id="authScreen" style="display: flex;">
+<div id="authScreen" >
   <div class="auth-box">
     <h2>Вход в систему</h2>
     <div class="auth-error" id="authError"></div>
@@ -411,6 +411,7 @@
       <div class="card" style="padding:12px;">
         <table class="match-table">
           <thead><tr><th>Этот цвет</th><th>Соответствует этому</th><th style="width:30px;"></th></tr></thead>
+          <tbody id="matchTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -585,8 +586,6 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 });
 
-const SECRET_PASSWORD = '676767';
-
 // ============ УТИЛИТЫ ============
 const $=id=>document.getElementById(id);
 function toast(msg, isError = false){ 
@@ -597,13 +596,6 @@ function toast(msg, isError = false){
   t.className='toast show';
   clearTimeout(t._t); 
   t._t=setTimeout(()=>t.className='toast',3000); 
-}
-
-function checkPassword() {
-  const pass = prompt('Для этого действия введите секретный код:');
-  if (pass === SECRET_PASSWORD) return true;
-  if (pass !== null) toast('Неверный код!', true);
-  return false;
 }
 
 function copyToClipboard(text) {
@@ -641,6 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============ АВТОРИЗАЦИЯ И ПРОФИЛЬ ============
 let currentUserEmail = '';
 let currentUserName = '';
+let currentUserId = '';
 
 async function login() {
   const email = $('authEmail').value;
@@ -662,6 +655,7 @@ async function checkAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     currentUserEmail = session.user.email;
+    currentUserId = session.user.id;
     
     const { data: profile, error } = await supabaseClient
       .from('profiles').select('name').eq('email', currentUserEmail).single();
@@ -751,38 +745,38 @@ async function loadFaq() {
   if (error) return;
   faqData = data; renderFaq();
 }
-
 function renderFaq() {
   const query = $('faqSearch').value.toLowerCase();
   const list = $('faqList');
   const filtered = faqData.filter(item => item.question.toLowerCase().includes(query) || (item.answer && item.answer.toLowerCase().includes(query)));
 
-  if (filtered.length === 0) { list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`; return; }
+  if (filtered.length === 0) { 
+    list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`; 
+    return; 
+  }
 
   list.innerHTML = filtered.map(item => {
     const hasAnswer = item.answer && item.answer.trim().length > 0;
     const answerHtml = hasAnswer ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;"><p>${item.answer}</p><div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div></div>` : '';
     const statusHtml = hasAnswer ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>` : `<div class="status-badge no-answer" onclick="openAnswerModal(${item.id})">Ожидает ответа</div>`;
+    
+    const canDelete = (item.user_id === currentUserId);
+    const deleteBtn = canDelete ? `<button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button>` : '';
 
     return `
       <div class="faq-item">
         <div class="faq-header">
           <div><div class="faq-q">${item.question}</div><div class="faq-author">Спросил: ${item.author_email}</div></div>
-          <div style="display:flex; gap:8px; align-items:center;">${statusHtml}<button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button></div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            ${statusHtml}
+            ${deleteBtn}
+          </div>
         </div>
         ${answerHtml}
       </div>`;
   }).join('');
 }
-
 function openFaqModal() { $('faqModal').classList.add('active'); }
-async function saveFaq() {
-  const q = $('faqNewQ').value; const a = $('faqNewA').value;
-  if (!q) { alert('Введите вопрос'); return; }
-  const { error } = await supabaseClient.from('faq').insert([{ question: q, answer: a || null, author_email: currentUserEmail, answer_author: a ? currentUserName : null }]);
-  if (error) { alert('Ошибка: ' + error.message); return; }
-  closeModal('faqModal'); await loadFaq(); toast('Вопрос сохранен');
-}
 
 async function deleteFaq(id) {
   if (!confirm('Удалить этот вопрос?')) return;
@@ -796,14 +790,25 @@ function openAnswerModal(id) {
   $('faqAnswerId').value = id; $('faqAnswerText').value = ''; $('faqAnswerModal').classList.add('active');
 }
 
-async function saveFaqAnswer() {
-  const id = parseInt($('faqAnswerId').value); const a = $('faqAnswerText').value;
-  if (!a) { alert('Введите ответ'); return; }
-  const { error } = await supabaseClient.from('faq').update({ answer: a, answer_author: currentUserName }).eq('id', id);
-  if (error) { alert('Ошибка: ' + error.message); return; }
-  closeModal('faqAnswerModal'); await loadFaq(); toast('Ответ добавлен');
-}
+async function saveFaq() {
+  const q = $('faqNewQ').value; const a = $('faqNewA').value;
+  if (!q) { alert('Введите вопрос'); return; }
+  
+  // 1. Получаем текущего пользователя
+  const { data: { user } } = await supabaseClient.auth.getUser();
 
+  // 2. Добавляем user_id в insert
+  const { error } = await supabaseClient.from('faq').insert([{ 
+    question: q, 
+    answer: a || null, 
+    author_email: currentUserEmail, 
+    answer_author: a ? currentUserName : null,
+    user_id: user.id // <--- ДОБАВЛЕНО
+  }]);
+  
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  closeModal('faqModal'); await loadFaq(); toast('Вопрос сохранен');
+}
 // ============ ПРЕДЛОЖЕНИЯ ============
 async function loadIdeas() {
   const { data: ideas, error } = await supabaseClient.from('ideas').select('*, idea_likes(user_email)').order('created_at', { ascending: false });
@@ -816,6 +821,11 @@ function renderIdeas() {
   list.innerHTML = ideasData.map(item => {
     const isLiked = item.idea_likes.some(l => l.user_email === currentUserEmail);
     const likesCount = item.idea_likes.length;
+    
+    // 👇 ДОБАВЛЯЕМ ПРОВЕРКУ
+    const canDelete = (item.user_id === currentUserId);
+    const deleteBtn = canDelete ? `<button class="danger icon-btn" onclick="deleteIdea(${item.id})" title="Удалить">×</button>` : '';
+
     return `
       <div class="card idea-card">
         <div class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id}, ${isLiked})">
@@ -826,20 +836,34 @@ function renderIdeas() {
           ${item.description ? `<div style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">${item.description}</div>` : ''}
           <div class="idea-author">Анонимно</div>
         </div>
-        <button class="danger icon-btn" onclick="deleteIdea(${item.id})" title="Удалить">×</button>
+        ${deleteBtn} <!-- 👈 ВСТАВЛЯЕМ ПЕРЕМЕННУЮ -->
       </div>`;
   }).join('');
 }
 
 function openIdeaModal() { $('ideaNewTitle').value = ''; $('ideaNewDesc').value = ''; $('ideaModal').classList.add('active'); }
 async function saveIdea() {
-  const title = $('ideaNewTitle').value; const desc = $('ideaNewDesc').value;
+  const title = $('ideaNewTitle').value; 
+  const desc = $('ideaNewDesc').value;
+  
   if (!title) { alert('Введите суть'); return; }
-  const { error } = await supabaseClient.from('ideas').insert([{ title: title, description: desc }]);
-  if (error) { alert('Ошибка: ' + error.message); return; }
-  closeModal('ideaModal'); await loadIdeas(); toast('Идея отправлена');
-}
 
+  // 1. Получаем текущего пользователя
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  // 2. Сохраняем с user_id в таблицу ideas
+  const { error } = await supabaseClient.from('ideas').insert([{ 
+    title: title, 
+    description: desc,
+    user_id: user.id // <--- ДОБАВЛЕНО
+  }]);
+
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  
+  closeModal('ideaModal'); 
+  await loadIdeas(); 
+  toast('Идея отправлена');
+}
 async function toggleLike(ideaId, isLiked) {
   if (isLiked) await supabaseClient.from('idea_likes').delete().eq('idea_id', ideaId).eq('user_email', currentUserEmail);
   else await supabaseClient.from('idea_likes').insert([{ idea_id: ideaId, user_email: currentUserEmail }]);
@@ -912,12 +936,30 @@ function renderMaterials() {
 
 function openMaterialModal() { $('materialModal').classList.add('active'); }
 async function saveMaterial() {
-  const name = $('matNewName').value; const price = parseInt($('matNewPrice').value);
-  const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean); const cons = $('matNewCons').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const name = $('matNewName').value; 
+  const price = parseInt($('matNewPrice').value);
+  const pros = $('matNewPros').value.split(',').map(s=>s.trim()).filter(Boolean); 
+  const cons = $('matNewCons').value.split(',').map(s=>s.trim()).filter(Boolean);
+  
   if (!name) { alert('Введите название'); return; }
-  const { error } = await supabaseClient.from('materials').insert([{ name: name, price_level: price, pros: pros, cons: cons }]);
+
+  // 1. Получаем текущего пользователя
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  // 2. Добавляем user_id
+  const { error } = await supabaseClient.from('materials').insert([{ 
+    name: name, 
+    price_level: price, 
+    pros: pros, 
+    cons: cons,
+    user_id: user.id // <--- ДОБАВЛЕНО
+  }]);
+
   if (error) { alert('Ошибка: ' + error.message); return; }
-  closeModal('materialModal'); await loadMaterials(); toast('Материал добавлен');
+  
+  closeModal('materialModal'); 
+  await loadMaterials(); 
+  toast('Материал добавлен');
 }
 
 async function deleteMaterial(id) {
@@ -950,7 +992,7 @@ function deleteComparisonGroup(id) {
   comparisonGroups = comparisonGroups.filter(g => g.id !== id); renderMaterials();
 }
 
-// ============ СООТВЕТСТВИЯ (ЗАЩИЩЕНО ПАРОЛЕМ) ============
+// ============ СООТВЕТСТВИЯ ============
 async function loadMatches() {
   const { data, error } = await supabaseClient.from('color_matches').select('*').order('created_at');
   if (error) { console.error(error); return; }
@@ -961,34 +1003,42 @@ function renderMatches() {
   const query = $('matchSearch').value.toLowerCase();
   const tbody = $('matchTableBody');
   const filtered = matchData.filter(m => m.color_from.toLowerCase().includes(query) || m.color_to.toLowerCase().includes(query));
+  
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 40px; color: var(--text-muted);">
       Ничего не найдено. <button class="primary sm" style="margin-left:10px;" onclick="prefillMatch('${query}')">Создать</button></td></tr>`;
     return;
   }
-  tbody.innerHTML = filtered.map(m => `
+  
+  tbody.innerHTML = filtered.map(m => {
+    const isMine = (m.user_id === currentUserId);
+    const readonlyAttr = isMine ? '' : 'readonly';
+    const deleteBtn = isMine ? `<button class="danger icon-btn" onclick="deleteMatch(${m.id})" title="Удалить">×</button>` : '';
+
+    return `
     <tr>
-      <td><div class="match-inputs"><input type="text" value="${m.color_from}" onchange="updateMatch(${m.id}, 'color_from', this.value)" placeholder="NCS / RAL" onclick="copyToClipboard(this.value)" title="Клик для копирования"></div></td>
-      <td><div class="match-inputs"><input type="text" value="${m.color_to}" onchange="updateMatch(${m.id}, 'color_to', this.value)" placeholder="МКА / Замша" onclick="copyToClipboard(this.value)" title="Клик для копирования"></div></td>
-      <td><button class="danger icon-btn" onclick="deleteMatch(${m.id})" title="Удалить">×</button></td>
-    </tr>`).join('');
+      <td><div class="match-inputs"><input type="text" value="${m.color_from}" ${readonlyAttr} onchange="updateMatch(${m.id}, 'color_from', this.value)" placeholder="NCS / RAL" onclick="copyToClipboard(this.value)" title="Клик для копирования"></div></td>
+      <td><div class="match-inputs"><input type="text" value="${m.color_to}" ${readonlyAttr} onchange="updateMatch(${m.id}, 'color_to', this.value)" placeholder="МКА / Замша" onclick="copyToClipboard(this.value)" title="Клик для копирования"></div></td>
+      <td>${deleteBtn}</td>
+    </tr>`;
+  }).join('');
 }
 
 async function addMatchRow() {
-  if (!checkPassword()) return;
-  await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "" }]); 
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  await supabaseClient.from('color_matches').insert([{ color_from: "", color_to: "",user_id: user.id }]); 
   await loadMatches(); 
 }
 
 async function updateMatch(id, field, value) { 
-  if (!checkPassword()) { renderMatches(); return; } 
+
   await supabaseClient.from('color_matches').update({ [field]: value }).eq('id', id); 
   const m = matchData.find(x => x.id === id); 
   if (m) m[field] = value; 
 }
 
 async function deleteMatch(id) { 
-  if (!checkPassword()) return;
+  
   await supabaseClient.from('color_matches').delete().eq('id', id); 
   await loadMatches(); 
 }
@@ -996,10 +1046,15 @@ async function deleteMatch(id) {
 function prefillMatch(text) { $('matchCode').value = text; $('matchModal').classList.add('active'); }
 
 async function saveMatch() {
-  if (!checkPassword()) return;
+
   const code = $('matchCode').value; const color = $('matchColorName').value;
   if (!code || !color) { alert('Заполните поля'); return; }
-  const { error } = await supabaseClient.from('color_matches').insert([{ color_from: code, color_to: color }]);
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  
+  const { error } = await supabaseClient.from('color_matches').insert([{ 
+    color_from: code, 
+    color_to: color,
+    user_id: user.id  }]);
   if (error) { alert('Ошибка: ' + error.message); return; }
   closeModal('matchModal'); await loadMatches(); toast('Соответствие добавлено');
 }
@@ -1067,10 +1122,12 @@ async function saveNewRate() {
   const name = $('calcNewName').value;
   const rate = parseFloat($('calcRateResult').dataset.rate);
   if (!name || isNaN(rate)) { alert('Введите название и корректные данные образца'); return; }
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
   const { error } = await supabaseClient.from('consumption_rates').insert([{
     name: name, rate_per_sqm: rate, weight: $('calcNewWeight').value || null,
-    technique: $('calcNewTech').value || null, tool: $('calcNewTool').value || null, notes: $('calcNewNotes').value || null
-  }]);
+    technique: $('calcNewTech').value || null, tool: $('calcNewTool').value || null, notes: $('calcNewNotes').value || null,
+    user_id: user.id}]);
   if (error) { alert('Ошибка: ' + error.message); return; }
   closeModal('calcModal'); await loadRates(); toast('Норма сохранена');
 }
@@ -1087,16 +1144,21 @@ function renderPalettes() {
   const grid = $('palettesList');
   const filtered = palettesData.filter(p => p.name.toLowerCase().includes(query));
   
-  let html = filtered.map(p => `
-    <div class="card palette-card">
+  let html = filtered.map(p => {
+    const isMine = (p.user_id === currentUserId);
+    const actionsHtml = isMine ? `
       <div class="palette-actions">
         <button class="primary" onclick="openPaletteModal(${p.id})" title="Редактировать">✎</button>
         <button class="danger" onclick="deletePalette(${p.id})" title="Удалить">×</button>
-      </div>
+      </div>` : '';
+
+    return `
+    <div class="card palette-card">
+      ${actionsHtml}
       <img src="${p.img_base64 || 'https://placehold.co/300x200/eeeeee/cccccc?text=No+Image'}" class="palette-img" alt="${p.name}" onclick="viewImage('${p.img_base64}')" title="Нажмите, чтобы увеличить">
       <div class="palette-name">${p.name}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   html += `
     <div class="add-palette-btn" onclick="openPaletteModal()">
@@ -1109,7 +1171,7 @@ function renderPalettes() {
 }
 
 function openPaletteModal(id = null) {
-  if (id && !checkPassword()) return;
+
 
   const title = $('paletteModalTitle'); const editId = $('palEditId');
   const nameInput = $('palNewName'); const urlInput = $('palNewUrl');
@@ -1148,10 +1210,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function savePalette() {
-  const id = $('palEditId').value; const name = $('palNewName').value;
+  const id = $('palEditId').value; 
+  const name = $('palNewName').value;
   const url = $('palNewUrl').value || null;
-  
-  if (id && !checkPassword()) return;
 
   if (!name) { alert('Введите название палитры'); return; }
   if (!tempPaletteImg && !id) { alert('Пожалуйста, выберите фото для палитры'); return; }
@@ -1163,15 +1224,24 @@ async function savePalette() {
     if (error) { alert('Ошибка: ' + error.message); return; }
     toast('Палитра обновлена');
   } else {
-    const { error } = await supabaseClient.from('warehouse_palettes').insert([{ name: name, url: url, img_base64: tempPaletteImg }]);
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    const { error } = await supabaseClient.from('warehouse_palettes').insert([{ 
+      name: name, 
+      url: url, 
+      img_base64: tempPaletteImg,
+      user_id: user.id 
+    }]);
+
     if (error) { alert('Ошибка: ' + error.message); return; }
     toast('Палитра добавлена');
   }
-  closeModal('paletteModal'); await loadPalettes();
+  closeModal('paletteModal'); 
+  await loadPalettes();
 }
 
 async function deletePalette(id) {
-  if (!checkPassword()) return;
+ 
   if (!confirm('Удалить эту палитру?')) return;
   await supabaseClient.from('warehouse_palettes').delete().eq('id', id);
   await loadPalettes(); toast('Палитра удалена');
@@ -1180,6 +1250,58 @@ async function deletePalette(id) {
 // --- МОДАЛКИ ---
 function closeModal(id) { $(id).classList.remove('active'); }
 
+// ============ СВАЙП ДЛЯ ЗАКРЫТИЯ БОКОВОГО МЕНЮ ============
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+
+function handleSwipe() {
+  const sidebar = $('sidebar');
+  // Если меню открыто и свайп был справа налево (минимум 50 пикселей)
+  if (sidebar.classList.contains('open') && (touchStartX - touchEndX > 50)) {
+    sidebar.classList.remove('open');
+  }
+}
+// ============ PULL-TO-REFRESH (ПОТЯНИ ВНИЗ ДЛЯ ОБНОВЛЕНИЯ) ============
+let pullStartY = 0;
+let isPulling = false;
+const mainContent = document.getElementById('mainContent');
+
+mainContent.addEventListener('touchstart', e => {
+  // Проверяем, что мы в самом верху страницы
+  if (mainContent.scrollTop === 0) {
+    pullStartY = e.touches[0].clientY;
+    isPulling = true;
+  }
+});
+
+mainContent.addEventListener('touchmove', e => {
+  if (!isPulling) return;
+  
+  const currentY = e.touches[0].clientY;
+  const pullDistance = currentY - pullStartY;
+  
+  // Если тянем вниз больше чем на 100 пикселей
+  if (pullDistance > 100) {
+    isPulling = false;
+    toast('Обновление...', false); // Показываем тост
+    setTimeout(() => {
+      location.reload(); // Перезагружаем страницу
+    }, 500);
+  }
+});
+
+mainContent.addEventListener('touchend', () => {
+  isPulling = false;
+});
 // СТАРТ
 checkAuth();
 </script>
