@@ -1328,24 +1328,38 @@ async function deletePalette(id) {
 // --- МОДАЛКИ ---
 function closeModal(id) { $(id).classList.remove('active'); }
 
-// ============ СВАЙП ДЛЯ ЗАКРЫТИЯ БОКОВОГО МЕНЮ ============
+// ============ СВАЙП ДЛЯ УПРАВЛЕНИЯ МЕНЮ ============
 let touchStartX = 0;
 let touchEndX = 0;
 
 document.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
-});
+}, { passive: true });
 
 document.addEventListener('touchend', e => {
   touchEndX = e.changedTouches[0].screenX;
   handleSwipe();
-});
+}, { passive: true });
 
 function handleSwipe() {
   const sidebar = $('sidebar');
-  // Если меню открыто и свайп был справа налево (минимум 50 пикселей)
-  if (sidebar.classList.contains('open') && (touchStartX - touchEndX > 50)) {
+  const swipeDistance = touchStartX - touchEndX;
+  const minSwipe = 50; // Минимальная длина свайпа в пикселях
+
+  // 1. Свайп ВЛЕВО (закрыть меню)
+  // Если меню открыто и палец провели слева направо
+  if (sidebar.classList.contains('open') && swipeDistance > minSwipe) {
     sidebar.classList.remove('open');
+  }
+  
+  // 2. Свайп ВПРАВО (открыть меню)
+  // Если меню закрыто и палец провели справа налево
+  // (Проверяем, что свайп начинается не с самого края экрана, чтобы не мешать системным жестам браузера)
+  else if (!sidebar.classList.contains('open') && swipeDistance < -minSwipe && touchStartX > 50) {
+    // Открываем меню только на мобильных устройствах (ширина экрана <= 768px)
+    if (window.innerWidth <= 768) {
+      sidebar.classList.add('open');
+    }
   }
 }
 // ============ PULL-TO-REFRESH (ПОТЯНИ ВНИЗ ДЛЯ ОБНОВЛЕНИЯ) ============
