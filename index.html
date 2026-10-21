@@ -372,8 +372,8 @@
     <div id="tab-ideas" class="tab-content" style="display:none;">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Предложения сотрудников</h1>
-          <div class="page-subtitle">Анонимные идеи по улучшению работы, коммуникации, рабочих условий</div>
+          <h1 class="page-title">Предложения</h1>
+          <div class="page-subtitle">Анонимные идеи по улучшению</div>
         </div>
         <button class="primary" onclick="openIdeaModal()">+ Предложить</button>
       </div>
@@ -395,7 +395,7 @@
       <input type="text" class="search-input" id="materialSearch" placeholder="Поиск по названию материала..." oninput="renderMaterials()">
       <div id="comparisonsContainer"></div>
       <h3 style="margin-top:40px;">Все материалы</h3>
-      <div class="grid grid-2" id="materialsList"></div>
+      <div class="grid grid-2" id="materialsList">Загрузка...</div>
     </div>
 
     <!-- РАЗДЕЛ 4: СООТВЕТСТВИЯ -->
@@ -411,7 +411,6 @@
       <div class="card" style="padding:12px;">
         <table class="match-table">
           <thead><tr><th>Этот цвет</th><th>Соответствует этому</th><th style="width:30px;"></th></tr></thead>
-          <tbody id="matchTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -687,10 +686,26 @@ async function checkAuth() {
 
 async function saveProfile() {
   const name = $('profileName').value.trim();
-  if (!name) { $('profileError').textContent = 'Введите имя'; $('profileError').style.display = 'block'; return; }
+  if (!name) { 
+    $('profileError').textContent = 'Пожалуйста, введите имя';
+    $('profileError').style.display = 'block';
+    return; 
+  }
 
-  const { error } = await supabaseClient.from('profiles').insert([{ email: currentUserEmail, name: name }]);
-  if (error) { $('profileError').textContent = 'Ошибка: ' + error.message; $('profileError').style.display = 'block'; return; }
+  // Получаем текущего пользователя, чтобы взять его ID
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  const { error } = await supabaseClient.from('profiles').insert([{ 
+    email: currentUserEmail, 
+    name: name,
+    user_id: user.id // <--- ВОТ ЭТА СТРОКА СВЯЗЫВАЕТ ПРОФИЛЬ С АККАУНТОМ
+  }]);
+
+  if (error) {
+    $('profileError').textContent = 'Ошибка: ' + error.message;
+    $('profileError').style.display = 'block';
+    return;
+  }
 
   currentUserName = name;
   $('sidebarUserName').textContent = `Привет, ${currentUserName}!`;
