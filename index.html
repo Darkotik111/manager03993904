@@ -123,13 +123,71 @@
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
 
   /* --- FAQ --- */
-  .faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; gap: 12px;}
+    /* --- АККОРДЕОН ДЛЯ FAQ --- */
+  .faq-item { 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    flex-direction: column; 
+  }
   .faq-item:last-child { border-bottom: none; }
-  .faq-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;}
-  .faq-q { font-weight: 600; font-size: 16px; margin-bottom: 4px;}
+
+  .faq-trigger {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 16px 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    font-family: var(--font);
+    color: var(--text);
+    transition: 0.2s;
+  }
+  .faq-trigger:hover { background: transparent; color: var(--primary); }
+  
+  .faq-trigger-content { flex: 1; }
+  .faq-q { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
   .faq-author { font-size: 12px; color: var(--text-muted); }
-  .faq-a { color: var(--text-muted); font-size: 15px; line-height: 1.6; background: var(--bg); padding: 12px; border-radius: 8px; margin-top: 8px;}
-  .faq-answer-author { font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;}
+
+  .faq-icon {
+    font-size: 20px;
+    color: var(--primary);
+    transition: transform 0.3s ease;
+    font-weight: bold;
+  }
+  .faq-trigger[aria-expanded="true"] .faq-icon {
+    transform: rotate(45deg); /* Плюсик превращается в крестик */
+  }
+
+  /* Контейнер для плавного раскрытия */
+  .faq-a {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-out;
+    overflow: hidden;
+  }
+  .faq-a.open {
+    grid-template-rows: 1fr;
+  }
+  .faq-a-content {
+    min-height: 0;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.6;
+    padding-bottom: 16px;
+  }
+  
+  .faq-answer-author { font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+  
+  .faq-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
   
   .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap;}
   .status-badge.has-answer { background: var(--success-light); color: var(--success); }
@@ -726,6 +784,7 @@ let faqData = [], ideasData = [], materialsData = [], matchData = [], ratesData 
 async function initApp() {
   await Promise.all([ loadFaq(), loadIdeas(), loadMaterials(), loadMatches(), loadRates(), loadPalettes() ]);
   checkNewAnswers(); 
+    initRealtime();
 }
 
 function checkNewAnswers() {
@@ -757,24 +816,43 @@ function renderFaq() {
 
   list.innerHTML = filtered.map(item => {
     const hasAnswer = item.answer && item.answer.trim().length > 0;
-    const answerHtml = hasAnswer ? `<div class="faq-a" id="faq-ans-${item.id}" style="display:none;"><p>${item.answer}</p><div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div></div>` : '';
-    const statusHtml = hasAnswer ? `<div class="status-badge has-answer" onclick="document.getElementById('faq-ans-${item.id}').style.display = document.getElementById('faq-ans-${item.id}').style.display === 'none' ? 'block' : 'none'">Посмотреть ответ</div>` : `<div class="status-badge no-answer" onclick="openAnswerModal(${item.id})">Ожидает ответа</div>`;
     
+    // Проверка на удаление
     const canDelete = (item.user_id === currentUserId);
-    const deleteBtn = canDelete ? `<button class="danger icon-btn" onclick="deleteFaq(${item.id})" title="Удалить">×</button>` : '';
+    const deleteBtn = canDelete ? `<button class="danger icon-btn" onclick="event.stopPropagation(); deleteFaq(${item.id})" title="Удалить">×</button>` : '';
+
+    // Если нет ответа, показываем кнопку "Ожидает ответа"
+    const statusBadge = !hasAnswer ? `<div class="status-badge no-answer" onclick="event.stopPropagation(); openAnswerModal(${item.id})">Ожидает ответа</div>` : '';
 
     return `
       <div class="faq-item">
-        <div class="faq-header">
-          <div><div class="faq-q">${item.question}</div><div class="faq-author">Спросил: ${item.author_email}</div></div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            ${statusHtml}
-            ${deleteBtn}
+        <button class="faq-trigger" aria-expanded="false" onclick="toggleFaq(this)">
+          <div class="faq-trigger-content">
+            <div class="faq-q">${item.question}</div>
+            <div class="faq-author">Спросил: ${item.author_email}</div>
+          </div>
+          <div class="faq-icon">+</div>
+        </button>
+        
+        <div class="faq-a">
+          <div class="faq-a-content">
+            ${hasAnswer ? `<p>${item.answer}</p><div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div>` : '<p style="color:var(--warning);">Ответа пока нет...</p>'}
+            <div class="faq-actions" style="margin-top:12px; margin-bottom:0;">
+              ${statusBadge}
+              ${deleteBtn}
+            </div>
           </div>
         </div>
-        ${answerHtml}
       </div>`;
   }).join('');
+}
+
+// Функция для открытия/закрытия аккордеона
+function toggleFaq(button) {
+  const isExpanded = button.getAttribute('aria-expanded') === 'true';
+  button.setAttribute('aria-expanded', !isExpanded);
+  const content = button.nextElementSibling;
+  content.classList.toggle('open');
 }
 function openFaqModal() { $('faqModal').classList.add('active'); }
 
@@ -1303,6 +1381,34 @@ mainContent.addEventListener('touchend', () => {
   isPulling = false;
 });
 // СТАРТ
+// ============ REALTIME ОБНОВЛЕНИЕ ============
+function initRealtime() {
+  // Создаем канал для прослушивания изменений в БД
+  const channel = supabaseClient
+    .channel('schema-db-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public' }, // Слушаем ВСЕ события (INSERT, UPDATE, DELETE) во всех таблицах
+      (payload) => {
+        console.log('Изменение в БД:', payload);
+        
+        // В зависимости от того, в какой таблице произошло изменение, обновляем нужный раздел
+        const table = payload.table;
+        
+        if (table === 'faq') loadFaq();
+        if (table === 'ideas') loadIdeas();
+        if (table === 'materials') loadMaterials();
+        if (table === 'color_matches') loadMatches();
+        if (table === 'consumption_rates') loadRates();
+        if (table === 'warehouse_palettes') loadPalettes();
+      }
+    )
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Realtime подключен. Данные будут обновляться автоматически.');
+      }
+    });
+}
 checkAuth();
 </script>
 </body>
