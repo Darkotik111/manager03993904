@@ -894,7 +894,8 @@ async function loadIdeas() {
   const { data: ideas, error } = await supabaseClient.from('ideas').select('*, idea_likes(user_email)').order('created_at', { ascending: false });
   if (error) {
    console.error("Ошибка FAQ:", error.message); 
-  return; }
+   return; 
+  }
   ideasData = ideas; renderIdeas();
 }
 
@@ -962,7 +963,7 @@ async function loadMaterials() {
   const { data, error } = await supabaseClient.from('materials').select('*').order('name');
   if (error) {
      console.error("Ошибка Materials:", error.message); 
-  } return;
+   return; }
   materialsData = data; renderMaterials();
 }
 
