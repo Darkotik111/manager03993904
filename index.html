@@ -716,7 +716,7 @@ async function checkAuth() {
     currentUserId = session.user.id;
     
     const { data: profile, error } = await supabaseClient
-      .from('profiles').select('name').eq('email', currentUserEmail).single();
+      .from('profiles').select('name').eq('email', currentUserEmail).maybeSingle();
 
     if (error || !profile) {
       $('authScreen').style.display = 'none';
@@ -764,6 +764,7 @@ async function saveProfile() {
   $('profileScreen').style.display = 'none';
   $('appScreen').style.display = 'flex';
   initApp();
+   initRealtime();
 }
 
 // ============ НАВИГАЦИЯ ============
@@ -784,8 +785,8 @@ let faqData = [], ideasData = [], materialsData = [], matchData = [], ratesData 
 async function initApp() {
   await Promise.all([ loadFaq(), loadIdeas(), loadMaterials(), loadMatches(), loadRates(), loadPalettes() ]);
   checkNewAnswers(); 
-    initRealtime();
 }
+
 
 function checkNewAnswers() {
   const myAnsweredQuestions = faqData.filter(q => q.author_email === currentUserEmail && q.answer && q.answer.trim().length > 0);
@@ -801,14 +802,17 @@ function checkNewAnswers() {
 // ============ FAQ ============
 async function loadFaq() {
   const { data, error } = await supabaseClient.from('faq').select('*').order('created_at', { ascending: false });
-  if (error) return;
+  if (error) {
+  console.error("Ошибка FAQ:", error.message);
+  return;}
   faqData = data; renderFaq();
 }
 function renderFaq() {
   const query = $('faqSearch').value.toLowerCase();
   const list = $('faqList');
   const filtered = faqData.filter(item => item.question.toLowerCase().includes(query) || (item.answer && item.answer.toLowerCase().includes(query)));
-
+  const isSearching = query.length > 2;
+  
   if (filtered.length === 0) { 
     list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Ничего не найдено.</div>`; 
     return; 
@@ -817,16 +821,13 @@ function renderFaq() {
   list.innerHTML = filtered.map(item => {
     const hasAnswer = item.answer && item.answer.trim().length > 0;
     
-    // Проверка на удаление
     const canDelete = (item.user_id === currentUserId);
     const deleteBtn = canDelete ? `<button class="danger icon-btn" onclick="event.stopPropagation(); deleteFaq(${item.id})" title="Удалить">×</button>` : '';
-
-    // Если нет ответа, показываем кнопку "Ожидает ответа"
     const statusBadge = !hasAnswer ? `<div class="status-badge no-answer" onclick="event.stopPropagation(); openAnswerModal(${item.id})">Ожидает ответа</div>` : '';
 
     return `
       <div class="faq-item">
-        <button class="faq-trigger" aria-expanded="false" onclick="toggleFaq(this)">
+        <button class="faq-trigger" aria-expanded="${isSearching ? 'true' : 'false'}" onclick="toggleFaq(this)">
           <div class="faq-trigger-content">
             <div class="faq-q">${item.question}</div>
             <div class="faq-author">Спросил: ${item.author_email}</div>
@@ -834,7 +835,8 @@ function renderFaq() {
           <div class="faq-icon">+</div>
         </button>
         
-        <div class="faq-a">
+        <!-- 👇 ИСПРАВЛЕННЫЙ БЛОК -->
+        <div class="faq-a ${isSearching ? 'open' : ''}">
           <div class="faq-a-content">
             ${hasAnswer ? `<p>${item.answer}</p><div class="faq-answer-author">Ответил: ${item.answer_author || 'Неизвестно'}</div>` : '<p style="color:var(--warning);">Ответа пока нет...</p>'}
             <div class="faq-actions" style="margin-top:12px; margin-bottom:0;">
@@ -890,7 +892,9 @@ async function saveFaq() {
 // ============ ПРЕДЛОЖЕНИЯ ============
 async function loadIdeas() {
   const { data: ideas, error } = await supabaseClient.from('ideas').select('*, idea_likes(user_email)').order('created_at', { ascending: false });
-  if (error) return;
+  if (error) {
+   console.error("Ошибка FAQ:", error.message); 
+  return; }
   ideasData = ideas; renderIdeas();
 }
 
@@ -956,7 +960,9 @@ async function deleteIdea(id) {
 // ============ МАТЕРИАЛЫ ============
 async function loadMaterials() {
   const { data, error } = await supabaseClient.from('materials').select('*').order('name');
-  if (error) return;
+  if (error) {
+     console.error("Ошибка Materials:", error.message); 
+  } return;
   materialsData = data; renderMaterials();
 }
 
@@ -1140,7 +1146,9 @@ async function saveMatch() {
 // ============ КАЛЬКУЛЯТОР ============
 async function loadRates() {
   const { data, error } = await supabaseClient.from('consumption_rates').select('*').order('name');
-  if (error) return;
+  if (error) {
+ console.error("Ошибка Rates:", error.message); 
+   return; }
   ratesData = data; renderCalculator();
 }
 
@@ -1213,7 +1221,9 @@ async function saveNewRate() {
 // ============ ПАЛИТРЫ (ЗАЩИЩЕНО ПАРОЛЕМ) ============
 async function loadPalettes() {
   const { data, error } = await supabaseClient.from('warehouse_palettes').select('*').order('name');
-  if (error) return;
+  if (error) {
+  console.error("Ошибка Palettes:", error.message);  
+  return; }
   palettesData = data; renderPalettes();
 }
 
@@ -1330,33 +1340,39 @@ function closeModal(id) { $(id).classList.remove('active'); }
 
 // ============ СВАЙП ДЛЯ УПРАВЛЕНИЯ МЕНЮ ============
 let touchStartX = 0;
+let touchStartY = 0; // Добавляем Y, чтобы отличать свайп от прокрутки
 let touchEndX = 0;
+let touchEndY = 0;
 
 document.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
 }, { passive: true });
 
 document.addEventListener('touchend', e => {
   touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
   handleSwipe();
 }, { passive: true });
 
 function handleSwipe() {
   const sidebar = $('sidebar');
-  const swipeDistance = touchStartX - touchEndX;
-  const minSwipe = 50; // Минимальная длина свайпа в пикселях
+  const swipeDistanceX = touchStartX - touchEndX;
+  const swipeDistanceY = touchStartY - touchEndY;
+  const minSwipe = 50; // Минимальная длина свайпа
+
+  // Игнорируем, если свайп был больше вертикальным (прокрутка), чем горизонтальным
+  if (Math.abs(swipeDistanceY) > Math.abs(swipeDistanceX)) return;
 
   // 1. Свайп ВЛЕВО (закрыть меню)
-  // Если меню открыто и палец провели слева направо
-  if (sidebar.classList.contains('open') && swipeDistance > minSwipe) {
+  if (sidebar.classList.contains('open') && swipeDistanceX > minSwipe) {
     sidebar.classList.remove('open');
   }
   
   // 2. Свайп ВПРАВО (открыть меню)
-  // Если меню закрыто и палец провели справа налево
-  // (Проверяем, что свайп начинается не с самого края экрана, чтобы не мешать системным жестам браузера)
-  else if (!sidebar.classList.contains('open') && swipeDistance < -minSwipe && touchStartX > 50) {
-    // Открываем меню только на мобильных устройствах (ширина экрана <= 768px)
+  // 👇 ВОТ ЗДЕСЬ ИСПРАВЛЕНИЕ: touchStartX > 50
+  // Это значит, что свайп должен начаться НЕ с самого края экрана (не в первых 50 пикселях)
+  else if (!sidebar.classList.contains('open') && swipeDistanceX < -minSwipe && touchStartX > 50) {
     if (window.innerWidth <= 768) {
       sidebar.classList.add('open');
     }
@@ -1396,17 +1412,19 @@ mainContent.addEventListener('touchend', () => {
 });
 // СТАРТ
 // ============ REALTIME ОБНОВЛЕНИЕ ============
+let realtimeChannel = null; // Объявляем переменную для хранения канала
+
 function initRealtime() {
-  // Создаем канал для прослушивания изменений в БД
-  const channel = supabaseClient
+  // Если канал уже создан, не создаем его повторно (защита от дублирования)
+  if (realtimeChannel) return; 
+
+  realtimeChannel = supabaseClient
     .channel('schema-db-changes')
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public' }, // Слушаем ВСЕ события (INSERT, UPDATE, DELETE) во всех таблицах
+      { event: '*', schema: 'public' },
       (payload) => {
         console.log('Изменение в БД:', payload);
-        
-        // В зависимости от того, в какой таблице произошло изменение, обновляем нужный раздел
         const table = payload.table;
         
         if (table === 'faq') loadFaq();
